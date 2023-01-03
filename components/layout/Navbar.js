@@ -257,8 +257,8 @@ export default function NavBar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     return (
-        <div className="">
-        <Popover className="relative bg-white  ">
+        <div className="fixed top-0 left-0 right-0 z-50 w-full">
+            <Popover className="relative bg-white">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 ">
                 <div className="flex items-center justify-between border-b-2 border-gray-100 py-2 md:justify-start md:space-x-10">
                     <div className="flex justify-start lg:w-0 lg:flex-1">
