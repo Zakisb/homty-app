@@ -90,6 +90,7 @@ export default function Listings() {
     const onUnmount = useCallback(function callback(map) {
         setMap(null)
     }, [])
+
     const AnyReactComponent = ({text}) => <div>{text}</div>;
     const containerStyle = {
         height:'100vh',
