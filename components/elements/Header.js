@@ -3,7 +3,7 @@ import {MagnifyingGlassIcon, EnvelopeIcon, MapPinIcon, BanknotesIcon, EllipsisHo
 
 const Header = ({}) => {
     return (
-        <main>
+        <main className="pt-24">
             <div className="relative px-6 lg:px-8">
                 <div className="mx-auto max-w-6xl px-12 pt-10 pb-32 sm:pt-18 sm:pb-23">
                     <div>
@@ -83,15 +83,6 @@ const Header = ({}) => {
                                         </div>
                                     </div>
                                 </form>
-                                {/*<a
-                                    href="#"
-                                    className="inline-block rounded-lg bg-indigo-600 px-4 py-1.5 text-base font-semibold leading-7 text-white shadow-sm ring-1 ring-indigo-600 hover:bg-indigo-700 hover:ring-indigo-700"
-                                >
-                                    Get started
-                                    <span className="text-indigo-200" aria-hidden="true">
-                      &rarr;
-                    </span>
-                                </a>*/}
                             </div>
                         </div>
                         <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
@@ -125,55 +116,6 @@ const Header = ({}) => {
                 </div>
             </div>
         </main>
-        /*<div className="container mx-auto 2xl mt-3">
-            <div className="relative">
-                <div className="relative bg-gray-100 lg:bg-transparent">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:grid lg:grid-cols-2 lg:px-8 bg-amber-300">
-                        <div className="mx-auto max-w-2xl py-24 lg:max-w-none lg:py-64">
-                            <div className="lg:pr-16">
-                                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">
-                                    Discover a better way of living.
-                                </h1>
-                                <p className="mt-4 text-xl text-gray-600">
-                                    Find convenient, affordable coliving homes and connect with like-minded people daily. Because living together is better.
-                                </p>
-                                <div className="w-full bg-white rounded p-2">
-                                    <div className="flex">
-                                        <div className="relative basis-full">
-                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                                            </div>
-                                            <input
-                                                id="search"
-                                                name="search"
-                                                className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-indigo-500 focus:text-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-                                                placeholder="Find coliving in ..."
-                                                type="search"
-                                            />
-                                        </div>
-                                        <div>
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                            >
-                                                Search
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="h-48 w-full sm:h-64 lg:absolute lg:top-0 lg:right-0 lg:h-full lg:w-1/2">
-                    <img
-                        src="https://tailwindui.com/img/ecommerce-images/home-page-02-hero-half-width.jpg"
-                        alt=""
-                        className="h-full w-full object-cover object-center"
-                    />
-                </div>
-            </div>
-        </div>*/
 
     );
 }

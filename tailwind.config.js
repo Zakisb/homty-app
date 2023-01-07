@@ -9,7 +9,8 @@ module.exports = {
       colors:{
         brandDark: "#000929",
         brandPrimary: "#7065F0",
-        purpleOne:"#F7F7FD"
+        purpleOne:"#F7F7FD",
+        formBg:"#F5F7FB"
       },
       gridTemplateColumns: {
         // Simple 16 column grid
