@@ -1,12 +1,17 @@
 import Layout from '../components/layout/Layout'
 import '../styles/globals.scss'
-import {SessionProvider} from "next-auth/react";
+import { SessionProvider, useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { Router } from 'next/router';
 
 function MyApp({Component, pageProps, session}) {
+
     return (
-        <Layout>
-            <Component {...pageProps} />
-        </Layout>
+        <SessionProvider session={session}>
+            <Layout>
+                <Component {...pageProps} />
+            </Layout>
+        </SessionProvider>
     )
 }
 

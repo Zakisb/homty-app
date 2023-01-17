@@ -1,8 +1,8 @@
 /*
-  This example requires some changes to your config:
+  This example requires some changes to your lib:
 
   ```
-  // tailwind.config.js
+  // tailwind.lib.js
   module.exports = {
     // ...
     plugins: [

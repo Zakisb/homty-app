@@ -1,17 +1,13 @@
 import NextAuth from "next-auth";
-/*import Providers from "next-auth/providers";*/
 import GoogleProvider from "next-auth/providers/google";
 import { useRouter } from 'next/router'
+import authApi from '/modules/auth/queries'
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 export default NextAuth({
 	// https://next-auth.js.org/configuration/providers
 	providers: [
-		/*Providers.Facebook({
-			clientId: process.env.FACEBOOK_ID,
-			clientSecret: process.env.FACEBOOK_SECRET,
-		}),*/
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -28,7 +24,6 @@ export default NextAuth({
 		// This option can be used with or without a database for users/accounts.
 		// Note: `jwt` is automatically set to `true` if no database is specified.
 		jwt: true,
-
 		// Seconds - How long until an idle session expires and is no longer valid.
 		// maxAge: 30 * 24 * 60 * 60, // 30 days
 
@@ -69,30 +64,33 @@ export default NextAuth({
 	// when an action is performed.
 	// https://next-auth.js.org/configuration/callbacks
 	callbacks: {
-		// async signIn(user, account, profile) {
-		// 	const { access_token } = account;
-		// 	if (access_token) {
-		// 		user.accessToken = access_token;
-		// 		return user;
-		// 	}
-		// 	return false;
-		// },
 		async signIn({ account, profile} ) {
 			if (account.provider === "google") {
-				return profile.email_verified && profile.email.endsWith("zakisb97@gmail.com")
+				return await authApi
+					.signInWithGoogle({ account, profile})
+					.then(function (response) {
+						return '/application-form'
+					})
+					.catch((error) => {
+						if (error.response.status === 409) {
+							// Handle the 409 status code
+							return '/'
+						}
+					})
 			}
-			return true // Do different verification for other providers that don't have `email_verified`
+			return true
 		},
 		async jwt(token, user, account, profile, isNewUser) {
 			if (account) {
 				const { accessToken, provider } = account;
 				token.provider = provider;
-				// reform the `token` object from the access token we appended to the `user` object
 				token.accessToken = accessToken;
 			}
 			return token;
 		},
 		async session(session, user) {
+			console.log('session is')
+			console.log(session)
 			if (user) {
 				const { accessToken, provider } = user;
 				session.provider = provider;

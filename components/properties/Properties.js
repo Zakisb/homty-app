@@ -1,12 +1,11 @@
 import {MagnifyingGlassIcon} from "@heroicons/react/20/solid";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBath, faBed, faCoffee, faHome} from '@fortawesome/free-solid-svg-icons'
-import './Properties.module.css'
 import {
     HeartIcon
 } from '@heroicons/react/24/outline'
 
-const PropertiesComponent = ({}) => {
+const Properties = ({}) => {
     return (
         <div className="gray-bg container mx-auto xl:px-14 ">
             <div className="relative flex flex-col justify-between sm:flex-row sm:items-end">
@@ -92,7 +91,7 @@ Some of our picked properties near you location.
                         </div>
                     </a>
                 </div>
-                <div className="relative mx- auto w-full">
+                <div className="relative mx-auto w-full">
                     <a href="#"
                        className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
                         <div className="rounded-lg bg-white shadow">
@@ -466,4 +465,4 @@ Some of our picked properties near you location.
     );
 }
 
-export default PropertiesComponent;
+export default Properties;
