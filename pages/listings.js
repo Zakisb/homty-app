@@ -30,6 +30,7 @@ import usePlacesAutocomplete, {
 } from "use-places-autocomplete";
 import Link from "next/link";
 import Button from '../components/ui/Button';
+import TenantLayout from '../components/layout/tenant/TenantLayout';
 
 
 const people = [{id: 1, name: 'Wade Cooper'}, {id: 2, name: 'Arlene Mccoy'}, {id: 3, name: 'Devon Webb'}, {
@@ -119,7 +120,8 @@ export default function Listings() {
 
 
 
-    return (<>
+    return (
+        <TenantLayout>
         <div className="w-full fixed top-16 bg-white left-0 right-0 z-40 flex content-center">
             <div className="max-h-fit  py-4 bg-indigo-700 flex content-center">
                 <FontAwesomeIcon icon={faSliders} className="w-8 py-4 px-4 relative text-xl text-white bg-indigo-700"/>
@@ -1640,5 +1642,5 @@ export default function Listings() {
             </div>
         </div>
         {/*<Footer/>*/}
-    </>)
+    </TenantLayout>)
 }

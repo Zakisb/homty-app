@@ -1,24 +1,17 @@
-/*
-  This example requires some changes to your lib:
-  
-  ```
-  // tailwind.lib.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
 
-import { Form, Formik } from 'formik';
 import * as yup from 'yup';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import CustomInput from '../components/elements/ui/CustomInput';
+import {
+	ErrorMessage,
+	Form,
+	FormField,
+	FormSelect,
+	SubmitButton,
+	FormDatePicker,
+	FormPhone
+} from '../components/ui/forms';
 import { useEffect } from 'react';
 import Link from 'next/link';
 
@@ -67,7 +60,8 @@ export default function Register () {
 	useEffect(() => {
 	}, []);
 
-	return (<div className="mx-auto mx-10 h-screen p-0  mt-32 border-gray-100 border-solid border-2 h-full">
+	return (
+		<div className="mx-auto mx-10 h-screen p-0  mt-32 border-gray-100 border-solid border-2 h-full">
 			<div className="flex justify-center mt-2">
 				<div className="flex flex-1 flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
 					<div className="mx-auto w-full max-w-sm lg:w-96">
@@ -143,7 +137,7 @@ export default function Register () {
 							</div>
 
 							<div className="mt-6">
-								<Formik
+								<Form
 									initialValues={{
 										firstName: '',
 										lastName: '',
@@ -154,46 +148,41 @@ export default function Register () {
 									validationSchema={validationSchema}
 									onSubmit={onSubmit}
 								>
-									{({ isSubmitting }) => (<Form className="space-y-5">
-											<CustomInput
-												label="First name"
-												name="firstName"
-												type="text"
-												placeholder="Enter your first name"
-											/>
-											<CustomInput
-												label="Last name"
-												name="lastName"
-												type="text"
-												placeholder="Enter your last name"
-											/>
-											<CustomInput
-												label="Email"
-												name="email"
-												type="text"
-												placeholder="Enter your email adresse"
-											/>
-											<CustomInput
-												label="Password"
-												name="password"
-												type="password"
-												placeholder="Enter your password"
-											/>
-											<CustomInput
-												label="Confirm password"
-												name="confirmPassword"
-												type="password"
-												placeholder="Confirm your password"
-											/>
-											<button
-												type="submit"
-												disabled={isSubmitting}
-												className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-											>
-												Register
-											</button>
-										</Form>)}
-								</Formik>
+										<FormField name={`firstName`}
+										           label={`First name`}
+										           placeholder={"Enter your first name"}/>
+
+										{/*<FormField
+											label="Last name"
+											name="lastName"
+											type="text"
+											placeholder="Enter your last name"
+										/>
+										<FormField
+											label="Email"
+											name="email"
+											type="text"
+											placeholder="Enter your email adresse"
+										/>
+										<FormField
+											label="Password"
+											name="password"
+											type="password"
+											placeholder="Enter your password"
+										/>
+										<FormField
+											label="Confirm password"
+											name="confirmPassword"
+											type="password"
+											placeholder="Confirm your password"
+										/>
+										<button
+											type="submit"
+											className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+										>
+											Register
+										</button>*/}
+								</Form>
 								{/*<form action="#" method="POST" className="space-y-6">
                                     <div>
                                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">

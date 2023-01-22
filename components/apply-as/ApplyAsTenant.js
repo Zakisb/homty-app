@@ -16,6 +16,7 @@ export default function ApplyAsTenant() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const { push } = useRouter()
+    const { data: session } = useSession()
     const passwordRules = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{5,}$/;
     const validationSchema = yup.object().shape({
         firstName: yup
@@ -55,6 +56,22 @@ export default function ApplyAsTenant() {
             });
     };
 
+    const test = async () => {
+        const res = await signIn('credentials', {
+            redirect: false,
+            email:'john.doe@example.com',
+            password: '12312321',
+            callbackUrl: `${window.location.origin}`,
+        });
+    }
+    useEffect(()=>{
+        console.log(session)
+        /* navigator.geolocation.getCurrentPosition(function(position) {
+			 console.log("Latitude is :", position.coords.latitude);
+			 console.log("Longitude is :", position.coords.longitude);
+		 });*/
+    })
+
     return (
             <Card className="md:p-16">
                 <h2 className="mb-7  text-3xl font-bold tracking-tight text-center">Join as tenant</h2>
@@ -65,7 +82,7 @@ export default function ApplyAsTenant() {
                         <div>
                             <a
                                 href="#"
-                                /*onClick={() => signIn()}*/
+                                onClick={handleOAuthSignIn('facebook')}
                                 className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
                             >
                                 <span className="sr-only">Register with Facebook</span>
@@ -173,7 +190,7 @@ export default function ApplyAsTenant() {
                 </div>
                 <p className="mt-5 text-sm text-gray-600 text-center">
                     Already have an account?{' '}
-                    <Link href='/login'>
+                    <Link href='/login' >
                         <a href="#" className="font-medium text-indigo-600 underline hover:text-indigo-500">
                             Log in
                         </a>

@@ -1,4 +1,4 @@
-import Navbar from './Navbar';
+import Navbar from './navigation/Navbar';
 import Footer from './Footer';
 import { useSession } from 'next-auth/react';
 import { Router } from 'next/router';

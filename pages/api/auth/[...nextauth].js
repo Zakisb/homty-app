@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { useRouter } from 'next/router'
 import authApi from '/modules/auth/queries'
+import FacebookProvider from "next-auth/providers/facebook";
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -12,6 +13,10 @@ export default NextAuth({
 			clientId: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 		}),
+		FacebookProvider({
+			clientId: process.env.FACEBOOK_CLIENT_ID,
+			clientSecret: process.env.FACEBOOK_CLIENT_SECRET
+		})
 	],
 
 	// The secret should be set to a reasonably long random string.
@@ -23,7 +28,8 @@ export default NextAuth({
 		// Use JSON Web Tokens for session instead of database sessions.
 		// This option can be used with or without a database for users/accounts.
 		// Note: `jwt` is automatically set to `true` if no database is specified.
-		jwt: true,
+		strategy: "jwt",
+		maxAge: 30 * 24 * 60 * 60, // 30 days
 		// Seconds - How long until an idle session expires and is no longer valid.
 		// maxAge: 30 * 24 * 60 * 60, // 30 days
 
@@ -74,13 +80,31 @@ export default NextAuth({
 					.catch((error) => {
 						if (error.response.status === 409) {
 							// Handle the 409 status code
-							return '/'
+							return '/application-form'
+						}
+					})
+			} else if  (account.provider === "facebook") {
+				return await authApi
+					.signInWithFacebook({ account, profile})
+					.then(function (response) {
+						return '/application-form'
+					})
+					.catch((error) => {
+						if (error.response.status === 409) {
+							// Handle the 409 status code
+							return '/application-form'
 						}
 					})
 			}
 			return true
 		},
-		async jwt(token, user, account, profile, isNewUser) {
+		async jwt({ token, user, account, profile, isNewUser }) {
+			return token
+		},
+		async session({ session, user, token }) {
+			return session
+		},
+		/*async jwt(token, user, account, profile, isNewUser) {
 			if (account) {
 				const { accessToken, provider } = account;
 				token.provider = provider;
@@ -88,16 +112,18 @@ export default NextAuth({
 			}
 			return token;
 		},
-		async session(session, user) {
-			console.log('session is')
+		async session({ session, token, user }) {
+			console.log('session is ')
 			console.log(session)
+			console.log('user is ')
+			console.log(user)
 			if (user) {
 				const { accessToken, provider } = user;
 				session.provider = provider;
 				session.accessToken = accessToken;
 			}
 			return session;
-		},
+		},*/
 	},
 
 	// Events are useful for logging

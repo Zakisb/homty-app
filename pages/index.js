@@ -5,13 +5,14 @@ import Properties from "../components/properties/Properties";
 import Footer from "../components/layout/Footer";
 import Cta from "../components/layout/Cta";
 import Partners from "../components/layout/Partners";
+import TenantLayout from '../components/layout/tenant/TenantLayout';
 
-export default function Home() {
-  return (
-      <>
-          <Header />
-          <Properties/>
-          <Footer />
-      </>
-  )
+export default function Home () {
+    return (
+        <TenantLayout>
+            <Header />
+            <Properties/>
+            <Footer />
+        </TenantLayout>
+    )
 }
