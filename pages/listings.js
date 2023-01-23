@@ -1,21 +1,36 @@
-import Header from "../components/elements/Header";
-import Footer from "../components/elements/Footer";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
 import {
-    BanknotesIcon, EllipsisHorizontalCircleIcon, MagnifyingGlassIcon, MapPinIcon, AdjustmentsHorizontalIcon
+    BanknotesIcon,
+    EllipsisHorizontalCircleIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    AdjustmentsHorizontalIcon,
+    ChevronUpDownIcon, CheckIcon
 } from "@heroicons/react/20/solid";
+import Lottie from 'react-lottie';
+import * as animationData from '/components/house.json'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBath, faBed, faHome, faSliders, faStopCircle} from '@fortawesome/free-solid-svg-icons'
-import {Popover, Listbox, Transition} from '@headlessui/react'
+import {Popover, Listbox, Transition, Combobox} from '@headlessui/react'
 import {Range, getTrackBackground} from 'react-range';
 import {useState, Fragment, useMemo, useCallback, useRef} from "react";
 import {ChevronDownIcon} from '@heroicons/react/20/solid'
-import {GoogleMap, useLoadScript, Marker, MarkerF, useJsApiLoader} from "@react-google-maps/api";
+import {GoogleMap, useLoadScript, Marker, MarkerF, useJsApiLoader, MarkerClusterer} from "@react-google-maps/api";
 import {
     ArrowPathIcon, ChartBarIcon, CursorArrowRaysIcon, HeartIcon, PhoneIcon, PlayIcon, ShieldCheckIcon, Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import {TagsInput} from "react-tag-input-component";
-import Map from "../components/elements/Map";
+import Map from "../components/layout/Map";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
+
+import usePlacesAutocomplete, {
+    getGeocode,
+    getLatLng,
+} from "use-places-autocomplete";
+import Link from "next/link";
+import Button from '../components/ui/Button';
+import TenantLayout from '../components/layout/tenant/TenantLayout';
 
 
 const people = [{id: 1, name: 'Wade Cooper'}, {id: 2, name: 'Arlene Mccoy'}, {id: 3, name: 'Devon Webb'}, {
@@ -29,51 +44,39 @@ const people = [{id: 1, name: 'Wade Cooper'}, {id: 2, name: 'Arlene Mccoy'}, {id
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
-const sortBy = [
-    { id: 1, name: 'Wade Cooper' },
-    { id: 2, name: 'Arlene Mccoy' },
-    { id: 3, name: 'Devon Webb' },
-    { id: 4, name: 'Tom Cook' },
-    { id: 5, name: 'Tanya Fox' },
-    { id: 6, name: 'Hellen Schmidt' },
-    { id: 7, name: 'Caroline Schultz' },
-    { id: 8, name: 'Mason Heaney' },
-    { id: 9, name: 'Claudie Smitham' },
-    { id: 10, name: 'Emil Schaefer' },
-]
-const solutions = [{
-    name: 'Analytics',
-    description: 'Get a better understanding of where your traffic is coming from.',
-    href: '#',
-    icon: ChartBarIcon,
-}, {
-    name: 'Engagement',
-    description: 'Speak directly to your customers in a more meaningful way.',
-    href: '#',
-    icon: CursorArrowRaysIcon,
-}, {name: 'Security', description: "Your customers' data will be safe and secure.", href: '#', icon: ShieldCheckIcon}, {
-    name: 'Integrations',
-    description: "Connect with third-party tools that you're already using.",
-    href: '#',
-    icon: Squares2X2Icon,
-}, {
-    name: 'Automations',
-    description: 'Build strategic funnels that will drive your customers to convert',
-    href: '#',
-    icon: ArrowPathIcon,
-},]
-const callsToAction = [{name: 'Watch Demo', href: '#', icon: PlayIcon}, {
-    name: 'Contact Sales',
-    href: '#',
-    icon: PhoneIcon
-},]
+
 
 export default function Listings() {
+    const {
+        ready,
+        value,
+        setValue,
+        suggestions: { status, data },
+        clearSuggestions,
+    } = usePlacesAutocomplete();
+
     const [selected, setSelected] = useState([""]);
     const {isLoaded} = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     })
+    const [selectedPerson, setSelectedPerson] = useState(null)
+
+    const [isLoading, setLoading] = useState(true)
+
+    const handleSelect = async (val) => {
+        setLoading(!isLoading)
+        setTimeout(setLoading(!isLoading), 2000);
+    };
+
+    const defaultOptions = {
+        loop: true,
+        autoplay: true,
+        animationData: animationData,
+        rendererSettings: {
+            preserveAspectRatio: "xMidYMid slice"
+        }
+    };
 
     const [values, setValues] = useState([25, 75]);
     const STEP = 1;
@@ -91,6 +94,23 @@ export default function Listings() {
         setMap(null)
     }, [])
 
+    const center = {
+        lat:48.8648727, lng:2.346198
+    };
+    const generateHouses = (center) => {
+        const _houses = [];
+        for (let i = 0; i < 100; i++) {
+            const direction = Math.random() < 0.5 ? -2 : 2;
+            _houses.push({
+                lat: center.lat + Math.random() / direction,
+                lng: center.lng + Math.random() / direction,
+            });
+        }
+        return _houses;
+    };
+
+    const houses = useMemo(() => generateHouses(center), [center]);
+
     const AnyReactComponent = ({text}) => <div>{text}</div>;
     const containerStyle = {
         height:'100vh',
@@ -98,14 +118,12 @@ export default function Listings() {
         position:'fixed',
     };
 
-    const center = {
-        lat: -3.745,
-        lng: -38.523
-    };
 
-    return (<>
+
+    return (
+        <TenantLayout>
         <div className="w-full fixed top-16 bg-white left-0 right-0 z-40 flex content-center">
-            <div className="max-h-fit  py-4 bg-indigo-700 flex content-center	 ">
+            <div className="max-h-fit  py-4 bg-indigo-700 flex content-center">
                 <FontAwesomeIcon icon={faSliders} className="w-8 py-4 px-4 relative text-xl text-white bg-indigo-700"/>
             </div>
             <div className="sm:grid px-6 sm:grid-cols-6 sm:items-start space-x-4 inline py-4">
@@ -114,19 +132,59 @@ export default function Listings() {
                         className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <MapPinIcon className="h-5 w-5 text-gray-400" aria-hidden="true"/>
                     </div>
-                    <input
-                        type="text"
-                        name="localisation"
-                        id="email"
-                        className="block w-full bg-purpleOne border border-solid border-gray-200 rounded-sm border-gray-300 py-3 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        placeholder="Where"
-                    />
+                    <Combobox as="div" value={selectedPerson} onChange={setValue} onSelect={(e) => handleSelect(e.target.value)}>
+                        <div className="relative mt-1">
+                            <Combobox.Input
+                                className="w-full rounded-md border border-gray-300 bg-white py-3 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                                value={value}
+                                placeholder='Where'
+                                onChange={(e) => setValue(e.target.value)}
+                                displayValue={(person) => person}
+                            />
+                            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                                <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </Combobox.Button>
+                            {data.length > 0 && (
+                                <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    {status == "OK" && data.map(({ place_id, description }) => (
+                                        <Combobox.Option
+                                            key={place_id}
+                                            value={description}
+                                            className={({ active }) =>
+                                                classNames(
+                                                    'relative cursor-default select-none py-2 pl-3 pr-9',
+                                                    active ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                                                )
+                                            }
+                                        >
+                                            {({ active, selected }) => (
+                                                <>
+                                                    <span className={classNames('block truncate', selected && 'font-semibold')}>{description}</span>
+
+                                                    {selected && (
+                                                        <span
+                                                            className={classNames(
+                                                                'absolute inset-y-0 right-0 flex items-center pr-4',
+                                                                active ? 'text-white' : 'text-indigo-600'
+                                                            )}
+                                                        >
+                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </Combobox.Option>
+                                    ))}
+                                </Combobox.Options>
+                            )}
+                        </div>
+                    </Combobox>
                 </div>
                 <div className="relative mt-1 rounded-md shadow-sm">
                     <Popover className="relative">
                         {({open}) => (<>
                             <Popover.Button
-                                className={classNames(open ? 'text-gray-900' : 'text-gray-500', 'py-3 group bg-purpleOne border border-solid rounded-sm border-gray-300 inline-flex items-center px-4 w-full rounded-sm bg-white text-base font-medium hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2')}
+                                className={classNames(open ? 'text-gray-900' : 'text-gray-500', 'py-3 group bg-purpleOne border border-solid  border-gray-300 rounded-sm inline-flex items-center px-4 w-full rounded-sm bg-white text-base font-medium hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2')}
                             >
                                 <span className="sm:text-sm">Budget</span>
                                 <ChevronDownIcon
@@ -164,7 +222,7 @@ export default function Listings() {
                                                         name="first-name"
                                                         id="first-name"
                                                         autoComplete="given-name"
-                                                        className="block w-full py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        className="block w-full py-2  border border-solid  rounded-md border-gray-300 px-4 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -180,7 +238,7 @@ export default function Listings() {
                                                         name="last-name"
                                                         id="last-name"
                                                         autoComplete="family-name"
-                                                        className="block w-full py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        className="block w-full py-2  border border-solid rounded-md border-gray-300  px-4 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -243,7 +301,7 @@ export default function Listings() {
                                                         name="first-name"
                                                         id="first-name"
                                                         autoComplete="given-name"
-                                                        className="block w-full py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        className="block w-full py-2 px-4 border border-solid rounded-md  border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -259,7 +317,7 @@ export default function Listings() {
                                                         name="last-name"
                                                         id="last-name"
                                                         autoComplete="family-name"
-                                                        className="block w-full py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                        className="block w-full py-2 px-4 border border-solid rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -727,6 +785,22 @@ export default function Listings() {
                             onLoad={onLoad}
                             onUnmount={onUnmount}
                         >
+                            <Marker
+                                position={{lat:48.8648727, lng:2.346198}}
+                                icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+                            />
+                            <MarkerClusterer>
+                                {(clusterer) =>
+                                    houses.map((house) => (
+                                        <Marker
+                                            key={house.lat}
+                                            position={house}
+                                            clusterer={clusterer}
+                                        />
+                                    ))
+                                }
+                            </MarkerClusterer>
+
                             { /* Child components, such as markers, info windows, etc. */}
                         </GoogleMap>
                     ) : <></>}
@@ -753,741 +827,820 @@ export default function Listings() {
                         </select>
                     </div>
                 </div>
-                <div className="sm:grid grid-cols-2 gap-6 sm:px-10 sm:py-3">
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
+                { !isLoading ? <Lottie
+                    options={defaultOptions}
+                    height={400}
+                    width={400}
+                    /> : (<>
+                    <div className="sm:grid grid-cols-2 gap-6 sm:px-10 sm:py-3">
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                            <a href="#"
+                               className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                <div className="rounded-lg bg-white shadow">
+                                    <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                        <div
+                                            className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                            <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                <img
+                                                    src="/assets/img/properties/6.jpg"
+                                                    alt=""/>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
+                                        <div className="absolute bottom-0 left-5 mb-3 flex">
+                                            <p className="flex items-center font-medium text-white shadow-sm">
+                                                <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                10
+                                            </p>
+                                        </div>
+                                        <div className="absolute bottom-0 right-5 mb-3 flex">
+                                            <p className="flex items-center font-medium text-gray-800">
+                                                <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                            </p>
+                                        </div>
+                                        <span
+                                            className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                            className="fa fa-star"></i> </span>
                                     </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                    <div className="p-4">
+                                        <div className="mt-4">
+                                            <div className="flex">
+                                                <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
                                         <span
                                             className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
+                                                    <span className="text-sm">/month</span>
+                                                </p>
+                                                <span
+                                                    className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                >
                                       <HeartIcon className="h-6 w-6" aria-hidden="true" />
                                     </span>
+                                            </div>
+                                            <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
                                         </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
+                                        <div className="mt-4">
+                                            <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                Imported fixtures and fittings Full basement Top of the [more]</p>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
+                                        <div className="justify-center" >
+                                            <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                    2 beds
+                                                </p>
 
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                    3 Bathrooms
+                                                </p>
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                    8x10 m²<sup></sup>
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div className="relative mx-auto w-full">
-                        <a href="#"
-                           className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
-                            <div className="rounded-lg bg-white shadow">
-                                <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
-                                    <div
-                                        className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
-                                        <div className="absolute inset-0 bg-black bg-opacity-80">
-                                            <img
-                                                src="/assets/img/properties/6.jpg"
-                                                alt=""/>
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-white shadow-sm">
-                                            <i className="fa fa-camera mr-2 text-xl text-white"></i>
-                                            10
-                                        </p>
-                                    </div>
-                                    <div className="absolute bottom-0 right-5 mb-3 flex">
-                                        <p className="flex items-center font-medium text-gray-800">
-                                            <i className="fa fa-heart mr-2 text-2xl text-white"></i>
-                                        </p>
-                                    </div>
-                                    <span
-                                        className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
-                                        className="fa fa-star"></i> </span>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mt-4">
-                                        <div className="flex">
-                                            <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
-                                        <span
-                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
-                                                <span className="text-sm">/month</span>
-                                            </p>
-                                            <span
-                                                className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
-                                            >
-                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
-                                    </span>
-                                        </div>
-
-                                        <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
-
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
-                                            Imported fixtures and fittings Full basement Top of the [more]</p>
-                                    </div>
-                                    <div className="justify-center" >
-                                        <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
-                                                2 beds
-                                            </p>
-
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
-                                                3 Bathrooms
-                                            </p>
-                                            <p className="flex items-center font-medium text-gray-800">
-                                                <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
-                                                8x10 m²<sup></sup>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:mt-8 sm:px-6">
-                    <div className="flex flex-1 justify-between sm:hidden">
-                        <a
-                            href="#"
-                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Previous
-                        </a>
-                        <a
-                            href="#"
-                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Next
-                        </a>
-                    </div>
-                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of{' '}
-                                <span className="font-medium">97</span> results
-                            </p>
+                            </a>
+                            </Link>
                         </div>
-                        <div>
-                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                                <a
-                                    href="#"
-                                    className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
-                                >
-                                    <span className="sr-only">Previous</span>
-                                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </a>
-                                {/* Current: "z-10 bg-indigo-50 border-indigo-500 text-indigo-600", Default: "bg-white border-gray-300 text-gray-500 hover:bg-gray-50" */}
-                                <a
-                                    href="#"
-                                    aria-current="page"
-                                    className="relative z-10 inline-flex items-center border border-indigo-500 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 focus:z-20"
-                                >
-                                    1
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </a>
-                                <a
-                                    href="#"
-                                    className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
-                                >
-                                    2
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </a>
-                                <a
-                                    href="#"
-                                    className="relative hidden items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20 md:inline-flex"
-                                >
-                                    3
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </a>
-                                <span className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                        <div className="relative mx-auto w-full">
+                            <Link href='/listing-details'>
+                                <a href="#"
+                                   className="relative inline-block w-full transform transition-transform duration-300 ease-in-out hover:-translate-y-2">
+                                    <div className="rounded-lg bg-white shadow">
+                                        <div className="relative flex h-52 justify-center overflow-hidden rounded-t-lg">
+                                            <div
+                                                className="w-full transform transition-transform duration-500 ease-in-out hover:scale-110">
+                                                <div className="absolute inset-0 bg-black bg-opacity-80">
+                                                    <img
+                                                        src="/assets/img/properties/6.jpg"
+                                                        alt=""/>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-white shadow-sm">
+                                                    <i className="fa fa-camera mr-2 text-xl text-white"></i>
+                                                    10
+                                                </p>
+                                            </div>
+                                            <div className="absolute bottom-0 right-5 mb-3 flex">
+                                                <p className="flex items-center font-medium text-gray-800">
+                                                    <i className="fa fa-heart mr-2 text-2xl text-white"></i>
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="absolute top-0 left-0 z-10 mt-3 ml-3 inline-flex select-none rounded-lg bg-transparent px-3 py-2 text-lg font-medium text-white"> <i
+                                                className="fa fa-star"></i> </span>
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="mt-4">
+                                                <div className="flex">
+                                                    <p className="text-primary mt-2 inline-block whitespace-nowrap rounded-xl font-semibold leading-tight">
+                                        <span
+                                            className="text-[19px] text-indigo-600 uppercase"> $3,200,000,000 </span>
+                                                        <span className="text-sm">/month</span>
+                                                    </p>
+                                                    <span
+                                                        className="text-indigo-700 ml-auto inline bg-indigo-50 rounded-[26px] inline-flex p-3 ring-4 ring-white"
+                                                    >
+                                      <HeartIcon className="h-6 w-6" aria-hidden="true" />
+                                    </span>
+                                                </div>
+                                                <h4 className="line-clamp-1 text-brandDark ">Kayak Point House</h4>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="line-clamp-1 text-gray-500 " >6 bedrooms Architect designed
+                                                    Imported fixtures and fittings Full basement Top of the [more]</p>
+                                            </div>
+                                            <div className="justify-center" >
+                                                <div className="mt-4 flex justify-around space-x-3 overflow-hidden  px-1 pt-3 border-t border-indigo-20000 ">
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBed} className="mr-1 text-indigo-600"/>
+                                                        2 beds
+                                                    </p>
+
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faBath} className="mr-1 text-indigo-600"/>
+                                                        3 Bathrooms
+                                                    </p>
+                                                    <p className="flex items-center font-medium text-gray-800">
+                                                        <FontAwesomeIcon icon={faHome} className="mr-1 text-indigo-600"/>
+                                                        8x10 m²<sup></sup>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:mt-8 sm:px-6">
+                        <div className="flex flex-1 justify-between sm:hidden">
+                            <a
+                                href="#"
+                                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                Previous
+                            </a>
+                            <a
+                                href="#"
+                                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                Next
+                            </a>
+                        </div>
+                        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of{' '}
+                                    <span className="font-medium">97</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                    <a
+                                        href="#"
+                                        className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
+                                    >
+                                        <span className="sr-only">Previous</span>
+                                        <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                                    </a>
+                                    {/* Current: "z-10 bg-indigo-50 border-indigo-500 text-indigo-600", Default: "bg-white border-gray-300 text-gray-500 hover:bg-gray-50" */}
+                                    <a
+                                        href="#"
+                                        aria-current="page"
+                                        className="relative z-10 inline-flex items-center border border-indigo-500 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 focus:z-20"
+                                    >
+                                        1
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
+                                    >
+                                        2
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="relative hidden items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20 md:inline-flex"
+                                    >
+                                        3
+                                    </a>
+                                    <span className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">
               ...
             </span>
-                                <a
-                                    href="#"
-                                    className="relative hidden items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20 md:inline-flex"
-                                >
-                                    8
-                                </a>
-                                <a
-                                    href="#"
-                                    className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
-                                >
-                                    9
-                                </a>
-                                <a
-                                    href="#"
-                                    className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
-                                >
-                                    10
-                                </a>
-                                <a
-                                    href="#"
-                                    className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
-                                >
-                                    <span className="sr-only">Next</span>
-                                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                                </a>
-                            </nav>
+                                    <a
+                                        href="#"
+                                        className="relative hidden items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20 md:inline-flex"
+                                    >
+                                        8
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
+                                    >
+                                        9
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
+                                    >
+                                        10
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20"
+                                    >
+                                        <span className="sr-only">Next</span>
+                                        <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                                    </a>
+                                </nav>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </>)
+                }
             </div>
         </div>
         {/*<Footer/>*/}
-    </>)
+    </TenantLayout>)
 }
