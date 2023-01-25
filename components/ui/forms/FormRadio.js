@@ -1,15 +1,13 @@
 import { Formik, useFormikContext } from 'formik';
 import InputRadioGroup from '../InputRadioGroup';
 
-function FormRadio({name, label, ...otherProps }) {
+function FormRadio({name, label,index, property, arrayField = false, ...otherProps }) {
 	const {
 		setFieldTouched,
-		handleChange,
 		setFieldValue,
 		values,
 		errors,
 		touched,
-
 	} = useFormikContext();
 
 	return (
@@ -23,7 +21,8 @@ function FormRadio({name, label, ...otherProps }) {
 				</label>
 			)}
 			<InputRadioGroup
-				handleChange={(e) => setFieldValue(name, e.target.value)}
+				handleChange={(e) =>
+					console.log(e.target.value)}
 				value={values[name]}
 				name={name}
 				{...otherProps}

@@ -1,16 +1,13 @@
-import { ErrorMessage, Form, FormField, FormSelect, SubmitButton, FormDatePicker, FormPhone } from '../../ui/forms';
+import { ErrorMessage, Form, FormField, FormSelect, SubmitButton,FormRadio, FormDatePicker, FormPhone } from '../../../ui/forms';
 import { Switch } from '@headlessui/react';
 import cn from 'classnames';
 import * as yup from 'yup';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { questions } from './questions';
-import InputText from '../../ui/InputText';
-import InputRadioGroup from '../../ui/InputRadioGroup';
-import FormRadio from '../../ui/forms/FormRadio';
-import Button from '../../ui/Button';
-import applicationFormApi from '../../../modules/application-form/queries';
+import Button from '../../../ui/Button';
+import applicationFormApi from '../../../../modules/application-form/queries';
 
-export default function PersonalityTraits ({handleBack, handleNext, scrollToTop}) {
+export default function HomePreference ({handleNext, handleBack, scrollToTop}) {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [startDate, setStartDate] = useState(new Date());
@@ -18,14 +15,16 @@ export default function PersonalityTraits ({handleBack, handleNext, scrollToTop}
 	const myRef = useRef(null);
 
 	const onSubmit = async (form, { resetForm }) => {
-		setLoading(true);
+		setLoading(true)
 
 		const answers = questions.map((q) => {
 			return { question: q.question, answer: form[q.type] };
 		})
 
+		console.log(answers)
+
 		const applicationForm = applicationFormApi
-			.updateApplicationForm({userId : '63a85e8ee6c15c8478387e7b',  step: 'step3' , answers: answers})
+			.updateApplicationForm({userId : '63a85e8ee6c15c8478387e7b',  step: 'step2' , answers: answers})
 			.then(function (response) {
 				setError(null)
 				resetForm();
@@ -42,20 +41,27 @@ export default function PersonalityTraits ({handleBack, handleNext, scrollToTop}
 			});
 	};
 
+	const notificationMethods = [
+		{ id: 'email', title: 'Email' },
+		{ id: 'sms', title: 'Phone (SMS)' },
+		{ id: 'push', title: 'Push notification' },
+	]
+
 	useEffect(() => {
 		scrollToTop(myRef);
 	}, [myRef, scrollToTop]);
 
 	return (
-		<div className="md:grid md:grid-cols-2 md:divide-x md:divide-gray-200 px-12 mt-28 pb-32" ref={myRef}>
-			<div className="md:px-12 md:py-10 mb-4 space-y-4">
-				<span>Step 3/4</span>
-				<h3>All About You</h3>
-				<p>To make sure we match you with the perfect home and roomates, we want to get to know you a little bit better. This step will help us understand more.</p>
+		<div className="md:grid lg:grid-cols-2 md:divide-x md:divide-gray-200 px-12 mt-28 pt-30 pb-32" ref={myRef}>
+			<div className="md:px-12 md:py-10 mb-4 space-y-4 col-span-1 ">
+				<span>Step 2/4</span>
+				<h3>Your Living Preferences</h3>
+				<p>We want to make sure the home we find for you is a perfect fit. In this step, we'll ask you about your preferred amenities and features, so we can match you with a home that has everything you need.</p>
+
 			</div>
 			<div className="md:px-12 md:py-8">
 				<Form
-					initialValues={{ q1: '', q2:'', q3:'', q4:'',q5:'',q6:'',q7:'',q8:'',q9:'', q10:'' }}
+					initialValues={{ q1: '', q2:'', q3:'', q4:'',q5:'',q6:'',q7:'',q8:'',q9:'', q10:'', q11:'', q12:'', q13:'' }}
 					validationSchema={validationSchema}
 					onSubmit={onSubmit}
 				>

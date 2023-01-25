@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import { EnvelopeIcon } from '@heroicons/react/20/solid';
 
-function InputText ({
+function InputTextArea ({
 	                    className,
 	                    label,
 	                    value = '',
@@ -47,7 +47,7 @@ function InputText ({
 						{icon}
 					</div>
 				}
-				<input
+				<textarea
 					id={name}
 					value={value}
 					name={name}
@@ -59,7 +59,7 @@ function InputText ({
 					autoCorrect="off"
 					autoCapitalize="off"
 					spellCheck="false"
-					type={type}
+					rows={4}
 					{...rest}
 				/>
 				{legend &&
@@ -74,4 +74,4 @@ function InputText ({
 	);
 }
 
-export default InputText;
+export default InputTextArea;

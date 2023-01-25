@@ -1,4 +1,4 @@
-import ActivityIndicator from '../../../lib/animation/ActivityIndicator';
+import ActivityIndicator from '../../../../lib/animation/ActivityIndicator';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router'
 import * as formSubmittedAnimation from '/public/assets/animations/formSubmittedAnimation.json';

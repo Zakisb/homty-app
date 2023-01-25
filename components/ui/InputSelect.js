@@ -5,10 +5,7 @@ import cn from 'classnames';
 import Select from 'react-select';
 import Tag from './Tag';
 
-function InputSelect ({
-	                      name,
-	                      label,
-	                      placeholder,
+function InputSelect ({ name, label, placeholder,
 	                      isMulti = false,
 	                      options,
 	                      handleChange,
@@ -34,7 +31,7 @@ function InputSelect ({
 				{tags &&
 					<>
 						<div className="flex flex-wrap items-center mt-2">
-							{selectedOptions.map((option) => (
+							{selectedOptions && selectedOptions.map((option) => (
 								<div key={option.value} className="mt-2.5 mr-2">
 									<Tag icon={tagIcon}
 									     title={option.label}

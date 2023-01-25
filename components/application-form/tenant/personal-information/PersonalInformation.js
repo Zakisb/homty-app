@@ -1,12 +1,12 @@
-import { ErrorMessage, Form, FormField, FormSelect, SubmitButton, FormDatePicker, FormPhone } from '../../ui/forms';
+import { ErrorMessage, Form, FormField, FormSelect, SubmitButton, FormDatePicker, FormPhone } from '../../../ui/forms';
 import { Switch } from '@headlessui/react';
 import cn from 'classnames';
 import * as yup from 'yup';
 import { useState, useRef, useEffect } from 'react';
 import { questions } from './questions';
-import Button from '../../ui/Button';
+import Button from '../../../ui/Button';
 import { CSSTransition } from 'react-transition-group';
-import applicationFormApi from '../../../modules/application-form/queries';
+import applicationFormApi from '../../../../modules/application-form/queries';
 
 export default function PersonalInformation ({ handleNext, handleBack, scrollToTop, isVisible }) {
 	const [error, setError] = useState(null);
