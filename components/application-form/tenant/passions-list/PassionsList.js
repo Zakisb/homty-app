@@ -1,12 +1,12 @@
-import { ErrorMessage, Form, FormDatePicker, FormField, FormPhone, FormSelect, SubmitButton } from '../../ui/forms';
+import { ErrorMessage, Form, FormDatePicker, FormField, FormPhone, FormSelect, SubmitButton } from '../../../ui/forms';
 import { passions } from './passions';
 import { useState, useRef, useEffect } from 'react';
 import * as yup from 'yup';
 import Select from 'react-select';
-import InputSelect from '../../ui/InputSelect';
+import InputSelect from '../../../ui/InputSelect';
 import { PlusIcon, HeartIcon } from '@heroicons/react/20/solid';
-import Button from '../../ui/Button';
-import applicationFormApi from '../../../modules/application-form/queries';
+import Button from '../../../ui/Button';
+import applicationFormApi from '../../../../modules/application-form/queries';
 
 export default function PassionsList ({handleNext, handleBack, scrollToTop}) {
 	const [error, setError] = useState(null);

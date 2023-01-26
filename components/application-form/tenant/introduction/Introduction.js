@@ -1,6 +1,6 @@
 import { steps } from './steps';
-import Button from '../../ui/Button';
-import { SubmitButton } from '../../ui/forms';
+import Button from '../../../ui/Button';
+import { SubmitButton } from '../../../ui/forms';
 
 export default function Introduction ({handleNext, scrollToTop}) {
 	return (

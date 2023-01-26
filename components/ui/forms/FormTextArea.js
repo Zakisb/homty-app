@@ -1,23 +1,25 @@
 import { Formik, useFormikContext } from 'formik';
-import InputSelect from '../InputSelect';
+import InputTextArea from '../InputTextArea';
 
-function FormSelect({ name,index, property, arrayField = false,  ...otherProps }) {
+function FormTextArea({ name, index, property,arrayField = false,  ...otherProps }) {
 	const {
+		setFieldTouched,
+		handleChange,
 		setFieldValue,
 		values,
 		errors,
-		className,
-		options
+		touched,
+		className
 	} = useFormikContext();
 
 	return (
 		<div>
-			<InputSelect
+			<InputTextArea
 				className={className}
-				options={options}
 				value={arrayField ? values[name][index][property] : values[name]}
-				selectedOptions={arrayField ? null : values[name]}
-				handleChange={(list) => setFieldValue(name, list)}
+				onChange={(e) => {
+					setFieldValue(arrayField ? `${name}.${index}.${property}` : name, e.target.value);
+				}}
 				{...otherProps}
 			/>
 			{errors[name] && <p className="mt-2 text-xs text-red-500">{errors[name]}</p>}
@@ -26,4 +28,4 @@ function FormSelect({ name,index, property, arrayField = false,  ...otherProps }
 	);
 }
 
-export default FormSelect;
+export default FormTextArea;

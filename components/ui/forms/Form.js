@@ -3,6 +3,7 @@ import {Formik} from "formik";
 
 function Form({initialValues, values, onSubmit, validationSchema, children}) {
     const [formFields, setFormFields] = useState({values});
+
     return (
         <Formik
             enableReinitialize={true}
@@ -10,7 +11,9 @@ function Form({initialValues, values, onSubmit, validationSchema, children}) {
             onSubmit={onSubmit}
             validationSchema={validationSchema}
         >
-            {({}) => children}
+            {
+                ({}) => children
+            }
         </Formik>
     );
 }
