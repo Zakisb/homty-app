@@ -8,7 +8,6 @@ import {
     AdjustmentsHorizontalIcon,
     ChevronUpDownIcon, CheckIcon
 } from "@heroicons/react/20/solid";
-import Lottie from 'react-lottie';
 import * as animationData from '/components/house.json'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBath, faBed, faHome, faSliders, faStopCircle} from '@fortawesome/free-solid-svg-icons'
