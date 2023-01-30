@@ -1,18 +1,38 @@
 import { ErrorMessage, Form, FormField, FormSelect, SubmitButton, FormDatePicker, FormPhone } from '../../../ui/forms';
-import { Switch } from '@headlessui/react';
-import cn from 'classnames';
 import * as yup from 'yup';
 import { useState, useRef, useEffect } from 'react';
 import { questions } from './questions';
 import Button from '../../../ui/Button';
-import { CSSTransition } from 'react-transition-group';
 import applicationFormApi from '../../../../modules/application-form/queries';
+import { useSession } from 'next-auth/react';
 
 export default function PersonalInformation ({ handleNext, handleBack, scrollToTop, isVisible }) {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [formAnswers, setFormAnswers] = useState([])
 	const validationSchema = yup.object().shape({});
 	const myRef = useRef(null);
+	const {data: session} = useSession();
+
+	const getUserAnswers =  () => {
+		return  applicationFormApi
+			.getApplicationForm({email : session.user.email, step: 'step1'})
+			.then(function (response) {
+				return response.data.questions
+			})
+			.catch((error) => {
+				console.log(error)
+			})
+	}
+
+	const getAnswer = (question) => {
+		if(formAnswers.length > 0) {
+			const obj = formAnswers.find(e => e.question === question);
+			return obj
+		} else {
+			return { answer:  '' };
+		}
+	};
 
 	const onSubmit = async (form, { resetForm }) => {
 		setLoading(true);
@@ -20,12 +40,13 @@ export default function PersonalInformation ({ handleNext, handleBack, scrollToT
 			{ question: 'What\'s birth date?', step: 'Personal information', answer: form.birthDate },
 			{ question: 'What\'s your gender?', step: 'Personal information', answer: form.gender },
 			{ question: 'What is your marital status?', step: 'Personal information', answer: form.marital },
+			{ question: 'What is your occupation?', step: 'Personal information', answer: form.occupation },
 			{ question: 'What is your address?', step: 'Personal information', answer: form.adresse },
-			{ question: ' What is your phone number?', step: 'Personal information', answer: form.phone }
+			{ question: 'What is your phone number?', step: 'Personal information', answer: form.phone }
 		];
 
 		const applicationForm = applicationFormApi
-			.updateApplicationForm({userId : '63a85e8ee6c15c8478387e7b',  step: 'step1' , answers: answers})
+			.updateApplicationForm({email : session.user.email,  step: 'step1' , answers: answers})
 			.then(function (response) {
 				setError(null)
 				resetForm();
@@ -43,6 +64,16 @@ export default function PersonalInformation ({ handleNext, handleBack, scrollToT
 	};
 
 	useEffect(() => {
+		getUserAnswers().then(data => {
+			if(data) {
+				setFormAnswers(data.step1)
+			} else {
+				const template = questions.map((object) => {
+					return {question: object.question, answer : '' }
+				})
+				setFormAnswers(template)
+			}
+		});
 		scrollToTop(myRef);
 	}, [myRef, scrollToTop]);
 
@@ -57,14 +88,15 @@ export default function PersonalInformation ({ handleNext, handleBack, scrollToT
 					</p>
 				</div>
 				<div className="md:px-12 md:py-8">
+					{formAnswers.length > 0 &&
 					<Form
 						initialValues={{
-							gender: '',
-							birthDate: new Date(),
-							marital: '',
-							occupation: '',
-							adresse: '',
-							phone: ''
+							birthDate: new Date(getAnswer("What\'s birth date?").answer || 0),
+							gender: getAnswer("What's your gender?").answer,
+							marital: getAnswer("What is your marital status?").answer,
+							occupation: getAnswer("What is your occupation?").answer,
+							adresse: getAnswer("What is your address?").answer,
+							phone: getAnswer("What is your phone number?").answer
 						}}
 						validationSchema={validationSchema}
 						onSubmit={onSubmit}
@@ -110,6 +142,7 @@ export default function PersonalInformation ({ handleNext, handleBack, scrollToT
 						</div>
 						<ErrorMessage visible={error} error={error}/>
 					</Form>
+					}
 
 				</div>
 			</div>

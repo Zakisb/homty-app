@@ -55,7 +55,7 @@ export const questions = [{
 	formType: 'radio',
 	options:  [{ id: 1, value: 'I try to understand the other person\'s perspective and find a compromise' }, { id: 2, value: 'I stand up for myself and assert my needs' }, { id: 3, value: 'I avoid or try to ignore the situation\n' } ]
 },  {
-	question: 'How do you handle conflicts with others?',
+	question: 'Are you more of a leader or a follower?',
 	answer: '',
 	step: 'Personality Traits',
 	type: 'q8',

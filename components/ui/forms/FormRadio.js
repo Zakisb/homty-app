@@ -21,8 +21,10 @@ function FormRadio({name, label,index, property, arrayField = false, ...otherPro
 				</label>
 			)}
 			<InputRadioGroup
-				handleChange={(e) =>
-					console.log(e.target.value)}
+				handleChange={(e) => {
+					setFieldValue(name , e.target.value)
+					console.log(values[name]);
+				}}
 				value={values[name]}
 				name={name}
 				{...otherProps}

@@ -80,7 +80,8 @@ export default function ApplicationFormTenant () {
 		<TenantLayout>
 			<div>
 				<div className="h-screen items-center z-20 cursor-default">
-					{renderStep()}
+					{/*{renderStep()}*/}
+					<Congratulations/>
 				</div>
 				<div className="fixed bottom-0 w-full z-30 pb-2 bg-white border">
 					<div className="overflow-hidden bg-gray-200">

@@ -29,6 +29,7 @@ const Header = ({}) => {
 	const [selectedPerson, setSelectedPerson] = useState(null);
 	const { data: session } = useSession();
 
+
 	const {
 		ready, value, setValue, suggestions: { status, data }, clearSuggestions
 	} = usePlacesAutocomplete();

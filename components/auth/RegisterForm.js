@@ -11,15 +11,17 @@ import authApi from '/modules/auth/queries'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useEffect } from 'react';
 
-export default function ApplyAsTenant() {
+export default function RegisterForm() {
     const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { push } = useRouter()
+    const router = useRouter()
+    const { role } = router.query
     const { data: session } = useSession()
     const passwordRules = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{5,}$/;
+
     const validationSchema = yup.object().shape({
-        firstName: yup
+        /*firstName: yup
             .string()
             .min(3, "First name must be at least 3 characters long")
             .required("First name is required"),
@@ -36,40 +38,34 @@ export default function ApplyAsTenant() {
         confirmPassword: yup
             .string()
             .oneOf([yup.ref("password"), null], "Passwords must match")
-            .required("Matching password is required"),
+            .required("Matching password is required"),*/
     });
 
-    const handleOAuthSignIn = (provider) => () => signIn(provider)
+    const handleOAuthSignIn = (provider) => () => signIn(provider, {callbackUrl: `/api/redirect?role=${role ? role : 'tenant'}`})
 
     const onSubmit = async (user, { resetForm }) => {
         setLoading(true);
-        const login = await authApi
+        const register = await authApi
             .signUp({...user})
             .then(function (response) {
                 setError(null)
-                resetForm();
+                signIn('credentials', {callbackUrl:`/application-form-${role.toLowerCase()}`, id: response.data._id, email: response.data.email, fullName:`${response.data.firstName} ${response.data.lastName}`, postRegistration:true, image: response.data.photo, role: role,  newUser:true});
+                /*resetForm();*/
             })
             .catch(function (error) {
-                setError(error.response.data)
+                if (error.response.status === 409) {
+                    setError(error.response.data.message)
+                } else {
+                    setError('An error occured. Please try again')
+                }
             }).finally((res) => {
                 setLoading(false);
             });
     };
 
-    const test = async () => {
-        const res = await signIn('credentials', {
-            redirect: false,
-            email:'john.doe@example.com',
-            password: '12312321',
-            callbackUrl: `${window.location.origin}`,
-        });
-    }
     useEffect(()=>{
         console.log(session)
-        /* navigator.geolocation.getCurrentPosition(function(position) {
-			 console.log("Latitude is :", position.coords.latitude);
-			 console.log("Longitude is :", position.coords.longitude);
-		 });*/
+        console.log(role)
     })
 
     return (

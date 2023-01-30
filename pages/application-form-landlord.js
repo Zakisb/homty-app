@@ -1,10 +1,10 @@
 import TenantLayout from '../components/layout/tenant/TenantLayout';
 import { CheckIcon } from '@heroicons/react/24/solid';
-import HomeDetails from '../components/application-form/landlord/HomeDetails';
-import { useState } from 'react';
-import Button from '../components/ui/Button';
+import HomeDetails from '../components/application-form/landlord/home-details/HomeDetails';
+import { useState, useCallback } from 'react';
 import RoomDetails from '../components/application-form/landlord/RoomDetails';
 import PreviewSubmit from '../components/application-form/landlord/PreviewSubmit';
+import PropertyContext from '../modules/application-form/context';
 
 const steps = [
 	{ id: 1, name: 'Listing Details', description: 'Supply basic property details.', href: '#', status: 'complete' },
@@ -19,6 +19,8 @@ function classNames (...classes) {
 export default function ApplicationFormLandlord () {
 	const [currentStep, setCurrentStep] = useState(1);
 	const [progress, setProgress] = useState(0);
+	const [propertyId, setPropertyId] = useState(null);
+
 	const progressText = [
 		'Welcome, we\'re excited to have you !',
 		'First, Getting to know you',
@@ -27,22 +29,37 @@ export default function ApplicationFormLandlord () {
 		'On the brink of completion',
 		'Congratulations !!'
 	];
-	/*const [currentStep, setCurrentStep] = useState(0);
-	const [progress, setProgress] = useState(0);
-	const steps = ['Personal Information', 'Lifestyle and Home Preferences', 'Personality Traits', 'Passions', 'Congratulations'];
-	const progressText = [
-		'Welcome, we\'re excited to have you !',
-		'First, Getting to know you',
-		'Making progress !',
-		'Great, Getting closer!',
-		'On the brink of completion',
-		'Congratulations !!'
-	];*/
+	const scrollToTop = useCallback((elementRef) => {
+		const parentPadding = 100;
+		const element = elementRef.current;
+		const elementTop = element.getBoundingClientRect().top;
+		window.scrollTo(0, elementTop - parentPadding);
+	}, []);
+
+	const renderStep = () => {
+		switch (currentStep) {
+			case 1:
+				return (
+					<HomeDetails handleNext={handleNext} scrollToTop={scrollToTop}/>
+				);
+			case 2:
+				return (
+					<RoomDetails  handleNext={handleNext} handleBack={handleBack} scrollToTop={scrollToTop}/>
+				);
+			case 3:
+				return (
+					<PreviewSubmit  handleNext={handleNext} handleBack={handleBack} scrollToTop={scrollToTop}/>
+				);
+			default:
+				return <div>Error. Please try again. if the error persists, consider contacting us.</div>;
+		}
+	};
+
 
 	const handleNext = () => {
 		if (currentStep < steps.length) {
 			setCurrentStep(currentStep + 1);
-			setProgress(progress + 25);
+			setProgress(progress + 33.33);
 		}
 	};
 
@@ -71,7 +88,7 @@ export default function ApplicationFormLandlord () {
 									)}
 								>
 									{ currentStep > step.id  ? (
-										<a href={step.href} className="group">
+										<a href={step.href} onClick={() => setCurrentStep(step.id)} className="group">
 					                    <span
 						                    className="absolute top-0 left-0 h-full w-1 bg-transparent group-hover:bg-gray-200 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 						                    aria-hidden="true"
@@ -94,7 +111,7 @@ export default function ApplicationFormLandlord () {
 						                    </span>
 										</a>
 									) : currentStep === step.id ? (
-										<a href={step.href} aria-current="step">
+										<a href={step.href} onClick={() => setCurrentStep(step.id)} aria-current="step">
 								                    <span
 									                    className="absolute top-0 left-0 h-full w-1 bg-indigo-600 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 									                    aria-hidden="true"
@@ -117,7 +134,7 @@ export default function ApplicationFormLandlord () {
 						                    </span>
 										</a>
 									) : (
-										<a href={step.href} className="group">
+										<a href={step.href} onClick={() => setCurrentStep(step.id)} className="group">
 							                    <span
 								                    className="absolute top-0 left-0 h-full w-1 bg-transparent group-hover:bg-gray-200 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 								                    aria-hidden="true"
@@ -164,9 +181,9 @@ export default function ApplicationFormLandlord () {
 					</ol>
 				</nav>
 			</div>
-			{/*<RoomDetails  handleNext={handleNext} handleBack={handleBack}/>*/}
-			<PreviewSubmit  handleNext={handleNext} handleBack={handleBack}/>
-			{/*<HomeDetails handleNext={handleNext} handleBack={handleBack}/>*/}
+			<PropertyContext.Provider value={{ propertyId, setPropertyId }}>
+			{renderStep()}
+			</PropertyContext.Provider>
 			<div className="fixed bottom-0 w-full z-30 pb-2 bg-white border">
 				<div className="overflow-hidden bg-gray-200">
 					<div className="h-2 rounded-r-full bg-indigo-600" style={{ width: `${progress}%` }}/>

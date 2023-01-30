@@ -1,17 +1,53 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { useRouter } from 'next/router'
-import authApi from '/modules/auth/queries'
-import FacebookProvider from "next-auth/providers/facebook";
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import { Router, useRouter } from 'next/router';
+import authApi from '/modules/auth/queries';
+import FacebookProvider from 'next-auth/providers/facebook';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 // For more information on each option (and a full list of options) go to
+
 // https://next-auth.js.org/configuration/options
 export default NextAuth({
+
 	// https://next-auth.js.org/configuration/providers
 	providers: [
+		CredentialsProvider({
+			type: 'credentials',
+			credentials: {},
+			async authorize (credentials, req) {
+				if (credentials.postRegistration === 'true') {
+					return {
+						id: credentials._id,
+						name: credentials.fullName,
+						image: credentials.image,
+						email: credentials.email,
+						role: credentials.role,
+						newUser: true
+					};
+				} else {
+					return await authApi.signIn({
+						'email': credentials.email,
+						'password': credentials.password
+					}).then(response => {
+						return {
+							id: response.data._id,
+							email: response.data.email,
+							image: response.data.photo,
+							name: `${response.data.firstName} ${response.data.lastName}`
+						};
+					}).catch(err => {
+						throw new Error(JSON.stringify({
+							message: err.response.data.message,
+							status: err.response.status
+						}));
+					});
+				}
+			}
+		}),
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET
 		}),
 		FacebookProvider({
 			clientId: process.env.FACEBOOK_CLIENT_ID,
@@ -19,17 +55,17 @@ export default NextAuth({
 		})
 	],
 
-	// The secret should be set to a reasonably long random string.
+	// The redirect should be set to a reasonably long random string.
 	// It is used to sign cookies and to sign and encrypt JSON Web Tokens, unless
-	// a separate secret is defined explicitly for encrypting the JWT.
+	// a separate redirect is defined explicitly for encrypting the JWT.
 	secret: process.env.JWT_SECRET,
 
 	session: {
 		// Use JSON Web Tokens for session instead of database sessions.
 		// This option can be used with or without a database for users/accounts.
 		// Note: `jwt` is automatically set to `true` if no database is specified.
-		strategy: "jwt",
-		maxAge: 30 * 24 * 60 * 60, // 30 days
+		strategy: 'jwt',
+		maxAge: 30 * 24 * 60 * 60 // 30 days
 		// Seconds - How long until an idle session expires and is no longer valid.
 		// maxAge: 30 * 24 * 60 * 60, // 30 days
 
@@ -43,14 +79,14 @@ export default NextAuth({
 	// option is set - or by default if no database is specified.
 	// https://next-auth.js.org/configuration/options#jwt
 	jwt: {
-		// A secret to use for key generation (you should set this explicitly)
-		// secret: 'INp8IvdIyeMcoGAgFGoA61DdBglwwSqnXJZkgz8PSnw',
+		// A redirect to use for key generation (you should set this explicitly)
+		// redirect: 'INp8IvdIyeMcoGAgFGoA61DdBglwwSqnXJZkgz8PSnw',
 		// Set to true to use encryption (default: false)
 		// encryption: true,
 		// You can define your own encode/decode functions for signing and encryption
 		// if you want to override the default behaviour.
-		// encode: async ({ secret, token, maxAge }) => {},
-		// decode: async ({ secret, token, maxAge }) => {},
+		// encode: async ({ redirect, token, maxAge }) => {},
+		// decode: async ({ redirect, token, maxAge }) => {},
 	},
 
 	// You can define custom pages to override the built-in ones. These will be regular Next.js pages
@@ -70,66 +106,36 @@ export default NextAuth({
 	// when an action is performed.
 	// https://next-auth.js.org/configuration/callbacks
 	callbacks: {
-		async signIn({ account, profile} ) {
-			if (account.provider === "google") {
+		async signIn ({ user, account, profile }) {
+			if (account.provider === 'google') {
+				const req = authApi.signInWithGoogle({ account, profile })
+			} else if (account.provider === 'facebook') {
 				return await authApi
-					.signInWithGoogle({ account, profile})
+					.signInWithFacebook({ account, profile })
 					.then(function (response) {
-						return '/application-form'
+						if (response.status === 204) {
+						} else {
+						}
 					})
 					.catch((error) => {
 						if (error.response.status === 409) {
-							// Handle the 409 status code
-							return '/application-form'
 						}
-					})
-			} else if  (account.provider === "facebook") {
-				return await authApi
-					.signInWithFacebook({ account, profile})
-					.then(function (response) {
-						return '/application-form'
-					})
-					.catch((error) => {
-						if (error.response.status === 409) {
-							// Handle the 409 status code
-							return '/application-form'
-						}
-					})
+					});
 			}
-			return true
+
+			return true;
 		},
-		async jwt({ token, user, account, profile, isNewUser }) {
-			return token
-		},
-		async session({ session, user, token }) {
-			return session
-		},
-		/*async jwt(token, user, account, profile, isNewUser) {
-			if (account) {
-				const { accessToken, provider } = account;
-				token.provider = provider;
-				token.accessToken = accessToken;
-			}
+		async jwt ({ token, user, account, profile, isNewUser }) {
 			return token;
 		},
-		async session({ session, token, user }) {
-			console.log('session is ')
-			console.log(session)
-			console.log('user is ')
-			console.log(user)
-			if (user) {
-				const { accessToken, provider } = user;
-				session.provider = provider;
-				session.accessToken = accessToken;
-			}
+		async session ({ session, user, token }) {
 			return session;
-		},*/
+		}
 	},
 
 	// Events are useful for logging
 	// https://next-auth.js.org/configuration/events
-	events: {},
 
 	// Enable debug messages in the console if you are having problems
-	debug: process.env.NODE_ENV === "development",
+	debug: process.env.NODE_ENV === 'development'
 });

@@ -28,13 +28,6 @@ function classNames (...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-const settings = [
-	{ name: 'Public access', description: 'This project would be available to anyone who has the link' },
-	{ name: 'Private to Project Members', description: 'Only members of this project would be able to access' },
-	{ name: 'Private to you', description: 'You are the only one able to access this project' }
-];
-
-
 const communSpaces = [
 	{
 		id: 1,
@@ -54,10 +47,12 @@ const communSpaces = [
 ];
 
 export default function RoomDetails ({ handleNext, handleBack }) {
+	const [loading, setLoading] = useState(false);
 	const validationSchema = yup.object().shape({});
 	const onSubmit = async (form, { resetForm }) => {
-
+		console.log(form)
 	};
+
 
 	return (
 		<div className="mx-20 mt-10 pb-36">
@@ -177,7 +172,10 @@ export default function RoomDetails ({ handleNext, handleBack }) {
 
 							<div className="w-1/2 ml-auto flex gap-2 border-red-500 mt-10">
 								<Button title={'Back'} size={'small'} variant={'secondary'} onClick={handleBack}/>
-								<Button title={'Next'} size={'small'} onClick={handleNext}/>
+								<SubmitButton disabled={false}
+								              title={'Done'}
+								              size={'small'}
+								              isLoading={loading}/>
 							</div>
 						</div>
 					)}

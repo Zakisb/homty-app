@@ -7,8 +7,8 @@ import { CheckCircleIcon, CheckIcon } from '@heroicons/react/20/solid';
 import { BiRadioCircle } from 'react-icons/bi';
 import { BsCheckCircleFill } from 'react-icons/bs';
 import Link from 'next/link';
-import ApplyAsTenant from '../components/apply-as/ApplyAsTenant';
 import TenantLayout from '../components/layout/tenant/TenantLayout';
+import Image from 'next/image'
 
 export default function ApplyAs () {
 	const [activeIndex, setActiveIndex] = useState(null);
@@ -16,8 +16,10 @@ export default function ApplyAs () {
 		id: 1,
 		description: 'I\'m landlord, listing my property.',
 		img: 'house.png',
-		cta: 'Join as landlord'
-	}, { id: 2, description: 'I\'m tenant, looking for a room.', img: 'search.png', cta: 'Join as tenant' }];
+		cta: 'Join as landlord',
+		role:'landlord'
+	},
+		{ id: 2, description: 'I\'m tenant, looking for a room.', img: 'search.png', cta: 'Join as tenant', role:'tenant' }];
 
 	return (
 		<TenantLayout>
@@ -33,7 +35,7 @@ export default function ApplyAs () {
                                             <Card isActive={activeIndex === type.id} className={cn(activeIndex === type.id ? 'bg-gray-100 border-brand-primary border-2' : '','cursor-pointer hover:border-brand-primary')}>
                                                 <div className="flex justify-between">
                                                     <div>
-                                                        <img className="w-8" src={`/assets/icons/applyas/${type.img}`} alt=""/>
+                                                        <Image className="w-8" src={`/assets/icons/applyas/${type.img}`} alt=""/>
                                                     </div>
                                                     <div className="flex items-center">
                                                         {checked ? (
@@ -56,10 +58,9 @@ export default function ApplyAs () {
                 </div>
                 </RadioGroup>
                 <div className="px-16">
-	                <Link href={'/login'}>
+	                <Link href={`/sign-up?role=${activeIndex ? applyType?.find((e) => e.id === activeIndex).role :  ''}`}>
 		                <Button title={activeIndex ? applyType.find((e) => e.id === activeIndex).cta : 'Create account'} disabled={!activeIndex}/>
 	                </Link>
-
 				</div>
                 <p className="mt-5 text-sm text-gray-600 text-center">
                     Already have an account?{' '}
@@ -70,9 +71,6 @@ export default function ApplyAs () {
                     </Link>
                 </p>
             </Card>
-			{/*	<div className="md:max-w-3xl w-10/12">
-					<ApplyAsTenant/>
-				</div>*/}
 			</div>
 		</TenantLayout>
 	);

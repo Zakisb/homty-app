@@ -12,7 +12,8 @@ function InputSelect ({ name, label, placeholder,
 	                      tags = false,
 	                      selectedOptions,
 	                      tagIcon = null,
-	                      description = null
+	                      description = null,
+						  value
                       }) {
 
 	return (
@@ -26,7 +27,7 @@ function InputSelect ({ name, label, placeholder,
 				</label>
 			)}
 			<div>
-				<Select options={options} placeholder={placeholder} isMulti={isMulti} onChange={handleChange}/>
+				<Select value={value} options={options} placeholder={placeholder} isMulti={isMulti} onChange={handleChange}/>
 				<span className='text-gray-400 mt-1 text-xs'>{description}</span>
 				{tags &&
 					<>

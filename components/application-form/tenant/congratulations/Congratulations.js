@@ -14,10 +14,9 @@ export default function Congratulations ({}) {
 	useEffect(() => {
 		redirectToHome();
 	}, []);
-
 	return (
 		<div className={'pt-32 text-center h-screen'}>
-			<ActivityIndicator visible={true} animationData={formSubmittedAnimation}/>
+			<div className="w-96 border-red-500 mx-auto"><ActivityIndicator visible={true}  animationData={formSubmittedAnimation}/></div>
 			<h3 className="mb-8">Congratulations on Completing Your Application!</h3>
 			<div className="mb-8">
 				<p>Thank you for taking the time to answer our questions and for choosing our platform for your home sharing needs.</p>

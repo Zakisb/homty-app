@@ -56,7 +56,7 @@ export const questions = [{
 	type: 'q7',
 	label: 'What is your preferred number of bedrooms?',
 	formType: 'radio',
-	options: [{ id: 1, value: 'Studio' }, { id: 2, value: 1 }, { id: 3, value: 2 }, { id: 3, value: 3 }, {
+	options: [{ id: 1, value: 'Studio' }, { id: 2, value: '1' }, { id: 3, value:' 2' }, { id: 3, value: '3' }, {
 		id: 3,
 		value: '4+'
 	}]

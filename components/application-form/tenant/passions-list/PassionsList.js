@@ -7,38 +7,55 @@ import InputSelect from '../../../ui/InputSelect';
 import { PlusIcon, HeartIcon } from '@heroicons/react/20/solid';
 import Button from '../../../ui/Button';
 import applicationFormApi from '../../../../modules/application-form/queries';
+import { useSession } from 'next-auth/react';
+import { questions } from '../personality-traits/questions';
 
-export default function PassionsList ({handleNext, handleBack, scrollToTop}) {
+export default function PassionsList ({ handleNext, handleBack, scrollToTop }) {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const myRef = useRef(null)
+	const [formAnswers, setFormAnswers] = useState([]);
+	const myRef = useRef(null);
 	const validationSchema = yup.object().shape({});
+	const { data: session } = useSession();
 
+	const getUserAnswers = () => {
+		return applicationFormApi
+			.getApplicationForm({ email: session.user.email, step: 'step4' })
+			.then(function (response) {
+				return response.data.questions;
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	};
 
 	const onSubmit = async (passions) => {
 		setLoading(true);
 
 		const applicationForm = await applicationFormApi
-			.updateApplicationForm({userId : '63a85e8ee6c15c8478387e7b',  step: 'step4' , answers: passions})
+			.updateApplicationForm({ email: session.user.email, step: 'step4', answers: passions })
 			.then(function (response) {
-				setError(null)
+				setError(null);
 			})
 			.catch((error) => {
 				if (error.response.status === 400) {
-					setError('User not found.')
+					setError('User not found.');
 				} else if (error.response.status === 500) {
-					setError('An error occured on the server while update the resources. please try again.')
+					setError('An error occured on the server while update the resources. please try again.');
 				} else {
-					alert('An error occured, please try later on !')
+					alert('An error occured, please try later on !');
 				}
 
 			}).finally((res) => {
 				setLoading(false);
 				handleNext();
 			});
-	}
+	};
 
 	useEffect(() => {
+		getUserAnswers().then(data => {
+			if(data) setFormAnswers(data.step4.passions)
+		});
 		scrollToTop(myRef);
 	}, [myRef, scrollToTop]);
 
@@ -47,27 +64,38 @@ export default function PassionsList ({handleNext, handleBack, scrollToTop}) {
 			<div className="md:px-12 md:py-10 mb-4 space-y-4">
 				<span>Step 4/4</span>
 				<h3>What sets your heart on fire?</h3>
-				<p>We all have passions that drive us and make us unique. Share with us the things you love to do and we'll help you find a place that aligns with your lifestyle. Whether it's art, sports, or adventure, let us know what makes you tick.
+				<p>We all have passions that drive us and make us unique. Share with us the things you love to do and
+					we'll help you find a place that aligns with your lifestyle. Whether it's art, sports, or adventure,
+					let us know what makes you tick.
 				</p>
 			</div>
 			<div className="md:px-12 md:py-8">
-				<Form
-					initialValues={{ passions: [] }}
-					validationSchema={validationSchema}
-					onSubmit={onSubmit}
-				>
-					<div className="space-y-5">
-						<FormSelect options={passions}  isMulti={true} tags={true} name={'passions'} label={'Search passions from our list'} description={'Add 3 passions atleast for best roomates match'}/>
-						<div className="w-full flex gap-2 ">
-							<Button title={'Back'}  size={'small'} variant={'secondary'} classNames={'w-1/2'} onClick={handleBack}/>
-							<SubmitButton disabled={false}
-							              title={'Done'}
-							              size={'small'}
-							              isLoading={loading} />
+					<Form
+						initialValues={{ passions: formAnswers.length > 0 ?  formAnswers : []}}
+						validationSchema={validationSchema}
+						onSubmit={onSubmit}
+					>
+						<div className="space-y-5">
+							<FormSelect options={passions}
+							            isMulti={true}
+							            tags={true}
+							            name={'passions'}
+							            label={'Search passions from our list'}
+							            description={'Add 3 passions atleast for best roomates match'}/>
+							<div className="w-full flex gap-2 ">
+								<Button title={'Back'}
+								        size={'small'}
+								        variant={'secondary'}
+								        classNames={'w-1/2'}
+								        onClick={handleBack}/>
+								<SubmitButton disabled={false}
+								              title={'Done'}
+								              size={'small'}
+								              isLoading={loading}/>
+							</div>
 						</div>
-					</div>
-					<ErrorMessage visible={error} error={error}/>
-				</Form>
+						<ErrorMessage visible={error} error={error}/>
+					</Form>
 			</div>
 		</div>
 	);

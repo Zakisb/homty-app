@@ -9,9 +9,8 @@ import { BsCheckCircleFill } from 'react-icons/bs';
 import Link from 'next/link';
 import RegisterForm from '../components/auth/RegisterForm';
 import TenantLayout from '../components/layout/tenant/TenantLayout';
-import LoginForm from '../components/auth/LoginForm';
 
-export default function Login () {
+export default function SignUp () {
 	const [activeIndex, setActiveIndex] = useState(null);
 	const applyType = [{
 		id: 1,
@@ -24,9 +23,9 @@ export default function Login () {
 		<TenantLayout>
 			<div className="flex pt-36 justify-center">
 				<div className="md:max-w-3xl w-10/12">
-					<LoginForm/>
+					<RegisterForm/>
 				</div>
 			</div>
 		</TenantLayout>
-	);
+);
 }

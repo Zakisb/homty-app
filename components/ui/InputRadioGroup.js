@@ -26,8 +26,9 @@ function InputRadioGroup ({   classNames,
 							<input
 								id={option.value}
 								name={name}
-								type="checkbox"
+								type="radio"
 								value={option.value}
+								checked={value === option.value}
 								onChange={handleChange}
 								className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
 							/>

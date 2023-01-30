@@ -14,7 +14,7 @@ export default function InputRadioCustomGroup({label, data, value, handleChange}
 				{data.map((item) => (
 					<RadioGroup.Option
 						key={item.id}
-						value={item}
+						value={item.value}
 						className={({ checked, active }) =>
 							cn(
 								checked ? 'border-transparent' : 'border-gray-300',
