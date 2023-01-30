@@ -829,11 +829,7 @@ export default function Listings() {
                         </select>
                     </div>
                 </div>
-                { !isLoading ? <Lottie
-                    options={defaultOptions}
-                    height={400}
-                    width={400}
-                    /> : (<>
+                { !isLoading ? <></> : (<>
                     <div className="sm:grid grid-cols-2 gap-6 sm:px-10 sm:py-3">
                         <div className="relative mx-auto w-full">
                             <Link href='/listing-details'>
