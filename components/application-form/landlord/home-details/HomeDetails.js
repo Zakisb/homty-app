@@ -92,7 +92,6 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 	useEffect(() => {
 		getPropertyDetail().then(data => {
 			if(data) {
-				console.log(propertyData.type)
 				setPropertyData(data)
 			}
 		})
@@ -101,7 +100,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 
 	return (
 		<div className="mx-20 mt-10 pb-36" ref={myRef}>
-			<p className={'leading-8 text-xl '}>We're thrilled to have you join us in providing comfortable and reliable
+			<p className={'leading-8 text-xl '}>We&#39;re thrilled to have you join us in providing comfortable and reliable
 				rooms for our tenants!</p>
 			<div className="mx-auto w-full mt-10 rounded-2xl bg-white p-2">
 				<Form
@@ -113,7 +112,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 						{({ open }) => (
 							<div className={'mb-4'}>
 								<Disclosure.Button className="flex w-full justify-between rounded-lg bg-indigo-50 px-4 py-3 text-left text-base font-medium text-purple-900 hover:bg-indigo-200 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75">
-									<span>1. What the type of property you're listing?</span>
+									<span>1. What the type of property you&#39;re listing?</span>
 									<ChevronUpIcon
 										className={`${
 											open ? 'rotate-180 transform' : ''

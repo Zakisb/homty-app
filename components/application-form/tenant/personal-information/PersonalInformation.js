@@ -82,9 +82,9 @@ export default function PersonalInformation ({ handleNext, handleBack, scrollToT
 				<div className="md:px-12 md:py-10 mb-4 space-y-4">
 					<p className="text-gray-500">Step 1/4</p>
 					<h3>Your Personal Information</h3>
-					<p>In this step, we'll ask you for some personal information so we can verify your identity and
+					<p>In this step, we&#39;ll ask you for some personal information so we can verify your identity and
 						contact
-						you about potential homes. Don't worry, we'll keep your information safe and secure.
+						you about potential homes. Don&#39;t worry, we&#39;ll keep your information safe and secure.
 					</p>
 				</div>
 				<div className="md:px-12 md:py-8">

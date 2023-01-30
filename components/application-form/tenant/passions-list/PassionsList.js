@@ -65,7 +65,7 @@ export default function PassionsList ({ handleNext, handleBack, scrollToTop }) {
 				<span>Step 4/4</span>
 				<h3>What sets your heart on fire?</h3>
 				<p>We all have passions that drive us and make us unique. Share with us the things you love to do and
-					we'll help you find a place that aligns with your lifestyle. Whether it's art, sports, or adventure,
+					we&#39;ll help you find a place that aligns with your lifestyle. Whether it&#39;s art, sports, or adventure,
 					let us know what makes you tick.
 				</p>
 			</div>

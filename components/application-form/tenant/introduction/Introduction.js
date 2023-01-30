@@ -6,7 +6,7 @@ export default function Introduction ({handleNext, scrollToTop}) {
 	return (
 		<div className="lg:grid md:grid-cols-2 items-center md:divide-gray-200 px-12 mt-28">
 			<div className="md:px-8 md:py-10 mb-4 space-y-4">
-				<h1 className="">We're excited to have you on board!</h1>
+				<h1 className="">We&#39;re excited to have you on board!</h1>
 			</div>
 			<div className="md:px-12 md:py-8 divide-y">
 				{steps.map((step, index) =>

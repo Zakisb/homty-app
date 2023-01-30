@@ -73,7 +73,7 @@ export default function HomePreference ({ handleNext, handleBack, scrollToTop })
 			<div className="md:px-12 md:py-10 mb-4 space-y-4 col-span-1 ">
 				<span>Step 2/4</span>
 				<h3>Your Living Preferences</h3>
-				<p>We want to make sure the home we find for you is a perfect fit. In this step, we'll ask you about
+				<p>We want to make sure the home we find for you is a perfect fit. In this step, we&#39;ll ask you about
 					your preferred amenities and features, so we can match you with a home that has everything you
 					need.</p>
 

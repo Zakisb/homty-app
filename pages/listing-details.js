@@ -18,7 +18,9 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Combobox } from '@headlessui/react';
 import Button from '../components/ui/Button';
 import AppCombobox from '../components/ui/AppCombobox';
-
+import propertyImg from '/public/assets/img/properties/10.jpg'
+import Image from 'next/image'
+import user from '/public/assets/img/users/1.jpeg'
 const pages = [
 	{ name: 'Listings', href: '#', current: false },
 	{ name: 'Details', href: '#', current: true }
@@ -228,7 +230,7 @@ export default function ListingDetails () {
 				</div>
 				<div className="bg-white">
 					<div className="sm:grid sm:grid-cols-3 gap-1 sm:grid-rows-3 p-1 bg-white rounded-sm">
-						<div>
+						{/*<div>
 							<img className="h-full" src="/assets/img/properties/10.jpg" alt=""/>
 						</div>
 						<div>
@@ -245,7 +247,7 @@ export default function ListingDetails () {
 						</div>
 						<div>
 							<img className="h-full" src="/assets/img/properties/6.jpg" alt=""/>
-						</div>
+						</div>*/}
 					</div>
 					<div className="grid grid-cols-4 gap-1 ">
 						{/*General details*/}
@@ -327,7 +329,7 @@ export default function ListingDetails () {
 							{rooms.map((room, index) => (
 								<div key={room.title}
 								     className={classNames(index === rooms.length - 1 ? '' : 'border-b border-solid border-[#e2e2e2]', 'py-4 mb-1 bg-white grid grid-cols-[1fr_2fr] items-center')}>
-									<img className="h-full w-full" src="/assets/img/properties/10.jpg" alt=""/>
+									<Image layout={'fill'} src={propertyImg} alt=""/>
 									<div className="px-5 py-1 h-full">
 										<div className="flex justify-between items-center items-center	">
 											<h6>{room.title}</h6>
@@ -352,7 +354,7 @@ export default function ListingDetails () {
 							<ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 								{ameneties.map((amnety) => (
 									<li key={amnety.title} className="col-span-1 rounded-lg bg-white flex items-center">
-										<img className="w-6 mr-2" src={`/assets/icons/${amnety.img}`} alt=""/>
+										{/*<img className="w-6 mr-2" src={`/assets/icons/${amnety.img}`} alt=""/>*/}
 										<span>{amnety.title}</span>
 									</li>
 								))}
@@ -434,8 +436,8 @@ export default function ListingDetails () {
 					{/*User card */}
 					<div className="bg-white border rounded-md  border-solid border-[#e2e2e2] shadow">
 						<div className="flex p-4 citems-center border-b">
-							<img className="h-24 h-24 rounded-full border border-solid border-gray-300"
-							     src="/assets/img/users/1.jpeg" alt=""/>
+							<Image width={96} height={96} className="rounded-full border border-solid border-gray-300"
+							     src={user} alt=""/>
 							<div className="px-6 space-y-1">
 								<h6 className="text-md">John Doe</h6>
 								<div><BsTelephone className="text-lg  rounded-md text-gray-400 inline-block mr-3"/><span

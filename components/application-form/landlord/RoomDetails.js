@@ -56,7 +56,7 @@ export default function RoomDetails ({ handleNext, handleBack }) {
 
 	return (
 		<div className="mx-20 mt-10 pb-36">
-			<p className={'leading-8 text-xl '}>We're thrilled to have you join us in providing comfortable and reliable
+			<p className={'leading-8 text-xl '}>We&#39;re thrilled to have you join us in providing comfortable and reliable
 				rooms for our tenants!</p>
 			<div className="mx-auto w-full mt-10 rounded-2xl bg-white p-2">
 				<Formik

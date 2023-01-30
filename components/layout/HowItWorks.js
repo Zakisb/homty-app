@@ -73,7 +73,7 @@ const HowItWorks = ({}) => {
                             </div>
                             <div className="text-center"><h3 className="text-xl font-semibold">1. Apply</h3>
                                 <span className="mt-5 block text-gray-700">
-Locate the perfect coliving home, click "Reserve," and submit your application in a matter of minutes.
+Locate the perfect coliving home, click &quot;Reserve,&quot; and submit your application in a matter of minutes.
 </span>
                             </div>
                         </div>

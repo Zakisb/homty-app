@@ -1,7 +1,7 @@
 import { getSession } from 'next-auth/react';
 import authApi from '../../../modules/auth/queries';
 
-export default async (req, res) => {
+const redirect = async (req, res) => {
 	const session = await getSession({ req });
 	const onboardingStatus = await authApi.checkOnboarding({
 		email: session.user.email,
@@ -15,3 +15,5 @@ export default async (req, res) => {
 		res.send(err)
 	});
 };
+
+export default redirect

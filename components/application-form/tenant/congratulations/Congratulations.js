@@ -13,7 +13,8 @@ export default function Congratulations ({}) {
 	}
 	useEffect(() => {
 		redirectToHome();
-	}, []);
+	}, );
+
 	return (
 		<div className={'pt-32 text-center h-screen'}>
 			<div className="w-96 border-red-500 mx-auto"><ActivityIndicator visible={true}  animationData={formSubmittedAnimation}/></div>
