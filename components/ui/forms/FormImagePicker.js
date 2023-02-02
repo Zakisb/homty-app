@@ -17,8 +17,9 @@ export default function FormImagePicker ({ name, index, property,arrayField = fa
 		<div>
 			<ImagePicker
 				className={cn(classNames)}
+				images={arrayField ? values[name][index][property] : values[name]}
 				handleChange={(files) => {
-					setFieldValue(name, files.map((file) => {
+					setFieldValue(arrayField ? `${name}.${index}.${property}` : name , files.map((file) => {
 						return file
 					}))
 				}}

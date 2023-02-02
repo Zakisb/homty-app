@@ -18,7 +18,7 @@ function FormSelect({ name,index, property, arrayField = false,value,  ...otherP
 				value={arrayField ? values[name][index][property] : values[name]}
 				selectedOptions={arrayField ? null : values[name]}
 				handleChange={(list) => {
-					setFieldValue(name, list);
+					setFieldValue(arrayField ? `${name}.${index}.${property}` : name, list );
 				}}
 				{...otherProps}
 			/>

@@ -1,83 +1,27 @@
-import TenantLayout from '../components/layout/tenant/TenantLayout';
+import { Fragment, useEffect, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/24/solid';
-import ApplicationHomeDetails from '../components/application-form/landlord/home-details/ApplicationHomeDetails';
-import { useState, useCallback } from 'react';
-import ApplicationRoomDetails from '../components/application-form/landlord/ApplicationRoomDetails';
-import ApplicationPreviewSubmit from '../components/application-form/landlord/ApplicationPreviewSubmit';
-import PropertyContext from '../modules/application-form/context';
-import LandlordIntroduction from '../components/application-form/landlord/landlord-introduction';
+import { useRouter } from 'next/router'
 
-const steps = [
-	{ id: 1, name: 'Welcome', description: 'Your first steps', href: '#', status: 'complete' },
-	{ id: 2, name: 'Listing Details', description: 'Supply property details.', href: '#', status: 'complete' },
-	{ id: 3, name: 'Rooms Details ', description: 'List all the available rooms.', href: '#', status: 'current' },
-	{ id: 4, name: 'Preview & Submit', description: 'Submit final property details.', href: '#', status: 'upcoming' }
-];
+
 
 function classNames (...classes) {
 	return classes.filter(Boolean).join(' ');
 }
 
-export default function ApplicationFormLandlord () {
-	const [currentStep, setCurrentStep] = useState(1);
-	const [progress, setProgress] = useState(0);
-	const [propertyId, setPropertyId] = useState(null);
 
-	const progressText = [
-		'Welcome, we\'re excited to have you !',
-		'First, Getting to know you',
-		'Making progress !',
-		'Great, Getting closer!',
-		'On the brink of completion',
-		'Congratulations !!'
+
+export default function PropertyAddNavbar({currentStep, children}) {
+	const router = useRouter();
+	const steps = [
+		{ id: 1, name: 'Listing Details', description: 'Supply property details.', href: `/application-landlord/${router.query.propertyId}/home-details`, status: 'complete' },
+		{ id: 2, name: 'Rooms Details', description: 'List all the available rooms.', href: `/application-landlord/${router.query.propertyId}/room-details`, status: 'current' },
+		{ id: 3, name: 'Preview & Submit', description: 'Submit final property details.', href: `/application-landlord/${router.query.propertyId}/preview-submit`, status: 'upcoming' }
 	];
-	const scrollToTop = useCallback((elementRef) => {
-		const parentPadding = 100;
-		const element = elementRef.current;
-		const elementTop = element.getBoundingClientRect().top;
-		window.scrollTo(0, elementTop - parentPadding);
-	}, []);
-
-	const renderStep = () => {
-		switch (currentStep) {
-			case 1:
-				return (
-					<LandlordIntroduction handleNext={handleNext} scrollToTop={scrollToTop}/>
-				);
-			case 2:
-				return (
-					<ApplicationHomeDetails handleNext={handleNext} scrollToTop={scrollToTop}/>
-				);
-			case 3:
-				return (
-					<ApplicationRoomDetails handleNext={handleNext} handleBack={handleBack} scrollToTop={scrollToTop}/>
-				);
-			case 4:
-				return (
-					<ApplicationPreviewSubmit handleNext={handleNext} handleBack={handleBack} scrollToTop={scrollToTop}/>
-				);
-			default:
-				return <div>Error. Please try again. if the error persists, consider contacting us.</div>;
-		}
-	};
-
-
-	const handleNext = () => {
-		if (currentStep < steps.length) {
-			setCurrentStep(currentStep + 1);
-			setProgress(progress + 33.33);
-		}
-	};
-
-	const handleBack = () => {
-		if (currentStep > 1) {
-			setCurrentStep(currentStep - 1);
-			setProgress(progress - 25);
-		}
-	};
 
 	return (
-		<TenantLayout>
+		<div>
 			<div className="lg:border-t lg:border-b lg:border-gray-200 mt-36">
 				<nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Progress">
 					<ol
@@ -94,7 +38,7 @@ export default function ApplicationFormLandlord () {
 									)}
 								>
 									{ currentStep > step.id  ? (
-										<a href={step.href} onClick={() => setCurrentStep(step.id)} className="group">
+										<a href='#' onClick={() =>  router.push(`${step.href}`)} className="group">
 					                    <span
 						                    className="absolute top-0 left-0 h-full w-1 bg-transparent group-hover:bg-gray-200 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 						                    aria-hidden="true"
@@ -117,7 +61,7 @@ export default function ApplicationFormLandlord () {
 						                    </span>
 										</a>
 									) : currentStep === step.id ? (
-										<a href={step.href} onClick={() => setCurrentStep(step.id)} aria-current="step">
+										<a href='#' onClick={() =>  router.push(`${step.href}`, undefined, { shallow: true })}  aria-current="step">
 								                    <span
 									                    className="absolute top-0 left-0 h-full w-1 bg-indigo-600 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 									                    aria-hidden="true"
@@ -127,7 +71,7 @@ export default function ApplicationFormLandlord () {
 													stepIdx !== 0 ? 'lg:pl-9' : '',
 													'px-6 py-5 flex items-start text-sm font-medium'
 												)}
-																	>
+											>
 						                      <span className="flex-shrink-0">
 						                        <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-600">
 						                          <span className="text-indigo-600">{step.id}</span>
@@ -140,17 +84,17 @@ export default function ApplicationFormLandlord () {
 						                    </span>
 										</a>
 									) : (
-										<a href={step.href} onClick={() => setCurrentStep(step.id)} className="group">
+										<a href="#" onClick={() =>  router.push(`${step.href}`, undefined, { shallow: true })}  className="group">
 							                    <span
 								                    className="absolute top-0 left-0 h-full w-1 bg-transparent group-hover:bg-gray-200 lg:bottom-0 lg:top-auto lg:h-1 lg:w-full"
 								                    aria-hidden="true"
 							                    />
-																		<span
-																			className={classNames(
-																				stepIdx !== 0 ? 'lg:pl-9' : '',
-																				'px-6 py-5 flex items-start text-sm font-medium'
-																			)}
-																		>
+											<span
+												className={classNames(
+													stepIdx !== 0 ? 'lg:pl-9' : '',
+													'px-6 py-5 flex items-start text-sm font-medium'
+												)}
+											>
 							                      <span className="flex-shrink-0">
 							                        <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gray-300">
 							                          <span className="text-gray-500">{step.id}</span>
@@ -187,19 +131,9 @@ export default function ApplicationFormLandlord () {
 					</ol>
 				</nav>
 			</div>
-			<PropertyContext.Provider value={{ propertyId, setPropertyId }}>
-			{renderStep()}
-			</PropertyContext.Provider>
-			<div className="fixed bottom-0 w-full z-30 pb-2 bg-white border">
-				<div className="overflow-hidden bg-gray-200">
-					<div className="h-2 rounded-r-full bg-indigo-600" style={{ width: `${progress}%` }}/>
-				</div>
-				<div className="flex justify-center mt-4">
-					<p className="text-sm font-medium text-gray-900  px-4 pb-1">{progressText[currentStep]}</p>
-				</div>
-			</div>
-		</TenantLayout>
-	);
+			{children}
+		</div>
+	)
+
+
 }
-
-

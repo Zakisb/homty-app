@@ -17,8 +17,7 @@ import FormImagePicker from '../../../ui/forms/FormImagePicker';
 import { ChevronUpIcon,  } from '@heroicons/react/20/solid';
 import { homeTypes, communSpaces} from './data';
 import { useSession } from 'next-auth/react';
-import PropertyContext from '../../../../modules/application-form/context';
-import applicationFormApi from '../../../../modules/application-form/queries';
+import { useRouter } from 'next/router';
 
 function classNames (...classes) {
 	return classes.filter(Boolean).join(' ');
@@ -31,27 +30,48 @@ const settings = [
 ];
 
 
-export default function HomeDetails ({handleNext, scrollToTop}) {
+export default function ApplicationHomeDetails ({}) {
 	const validationSchema = yup.object().shape({});
 	const [selected, setSelected] = useState(settings[0]);
 	const [error, setError] = useState(null);
 	const [propertyData, setPropertyData] = useState([]);
 	const [loading, setLoading] = useState(false);
+	const [images, setImages] = useState([]);
 	const myRef = useRef(null);
 	const { data: session } = useSession();
-	const {propertyId, setPropertyId} = useContext(PropertyContext)
+	const router = useRouter();
 
-
+	const formatImages = async (images) => {
+		if(images) {
+			const imagesPreview = images.map((image) => {
+				 return fetch(`${process.env.NEXT_PUBLIC_PROPERTIES_IMAGES_URL}/${image}`)
+					.then(async (response) => response.blob())
+					.then(blobData => {
+						const image =  new File([blobData], '1x67509577064512.jpg', { type: 'image/jpeg' });
+						Object.assign(image, {
+							preview : URL.createObjectURL(image)
+						});
+						return Promise.resolve(image)
+					})
+			})
+			Promise.all(imagesPreview).then(res =>
+				setImages(res))
+		} else {
+			return false;
+		}
+	}
 
 	const getPropertyDetail = async () => {
-		if(propertyId) {
-			return propertiesApi
-				.getProperty(propertyId)
+		if(router.query.propertyId) {
+			return await propertiesApi
+				.getProperty(router.query.propertyId)
 				.then(function (response) {
 					return response.data
 				})
 				.catch((error) => {
-					console.log(error);
+					if(error.response.status === 400) {
+						router.push('/')
+					}
 				});
 		}
 	}
@@ -63,17 +83,20 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 		for (const single_file of form.images) {
 			property.append('images', single_file)
 		}
+		for (const commonSpance of form.commonSpaces) {
+			property.append('commonSpaces', commonSpance)
+		}
+
 		property.append('type', form.homeType);
 		property.append('address', form.address);
 		property.append('surface', form.surface);
-		property.append('commonSpaces', form.commonSpaces);
 		property.append('email', session.user.email);
 
-		const addProperty = await propertiesApi
-			.addProperty(property)
+		 await propertiesApi
+			.updateProperty(property, router.query.propertyId)
 			.then(function (response) {
 				setError(null);
-				setPropertyId(response.data._id)
+				router.push(`/application-landlord/${router.query.propertyId}/room-details`)
 			})
 			.catch((error) => {
 				if (error.response.status === 400) {
@@ -85,18 +108,19 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 				}
 			}).finally((res) => {
 				setLoading(false);
-				handleNext();
 			});
 	};
 
 	useEffect(() => {
+		if(!router.isReady) return;
 		getPropertyDetail().then(data => {
 			if(data) {
 				setPropertyData(data)
+				formatImages(data.images)
 			}
 		})
-		scrollToTop(myRef);
-	}, [myRef, scrollToTop]);
+
+	}, [router.isReady]);
 
 	return (
 		<div className="mx-20 mt-10 pb-36" ref={myRef}>
@@ -104,7 +128,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 				rooms for our tenants!</p>
 			<div className="mx-auto w-full mt-10 rounded-2xl bg-white p-2">
 				<Form
-					initialValues={{ homeType: propertyData.type || '', address: '', surface: '', commonSpaces: [], images:[] }}
+					initialValues={{ homeType: propertyData.type || '', address: propertyData.address || '', surface: propertyData.surface || '', commonSpaces: propertyData.commonSpaces || [], images: images || [] }}
 					validationSchema={validationSchema}
 					onSubmit={onSubmit}
 				>
@@ -126,7 +150,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 							</div>
 						)}
 					</Disclosure>
-					<Disclosure>
+					<Disclosure defaultOpen>
 						{({ open }) => (
 							<div className={'mb-4'}>
 								<Disclosure.Button className="flex w-full justify-between rounded-lg bg-indigo-50 px-4 py-3 text-left text-base font-medium text-purple-900 hover:bg-indigo-200 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75">
@@ -146,7 +170,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 							</div>
 						)}
 					</Disclosure>
-					<Disclosure>
+					<Disclosure defaultOpen>
 						{({ open }) => (
 							<div className={'mb-4'}>
 								<Disclosure.Button className="flex w-full justify-between rounded-lg bg-indigo-50 px-4 py-3 text-left text-base font-medium text-purple-900 hover:bg-indigo-200 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75">
@@ -166,7 +190,7 @@ export default function HomeDetails ({handleNext, scrollToTop}) {
 							</div>
 						)}
 					</Disclosure>
-					<Disclosure>
+					<Disclosure defaultOpen>
 						{({ open }) => (
 							<div className={'mb-4'}>
 								<Disclosure.Button className="flex w-full justify-between rounded-lg bg-indigo-50 px-4 py-3 text-left text-base font-medium text-purple-900 hover:bg-indigo-200 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 focus-visible:ring-opacity-75">

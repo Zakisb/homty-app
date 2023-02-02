@@ -3,14 +3,13 @@ import cn from 'classnames';
 import { useDropzone } from 'react-dropzone';
 import { useCallback, useState, useEffect } from 'react';
 
-export default function ImagePicker ({name, handleChange}) {
-	const [myFiles, setMyFiles] = useState([]);
+export default function ImagePicker ({name, handleChange , images = []}) {
+	const [myFiles, setMyFiles] = useState(images);
 
 	const onDrop = useCallback(acceptedFiles => {
 		setMyFiles([...myFiles, ...acceptedFiles.map(file => Object.assign(file, {
 			preview: URL.createObjectURL(file)
 		}))]);
-
 	}, [myFiles]);
 
 	const { getRootProps, getInputProps, isDragActive, acceptedFiles, open } = useDropzone({
@@ -37,7 +36,7 @@ export default function ImagePicker ({name, handleChange}) {
 		<div key={file.preview} className="relative overflow-hidden rounded-md">
 			<img className="object-cover object-center h-56 w-full"
 			     src={file.preview}/>
-			<button className="absolute top-0 right-0 text-red-500 hover:text-red-800 cursor-pointer bg-red-500 z-50" onClick={removeFile(file)}>
+			<button className="absolute top-0 right-0 text-red-500 hover:text-red-800 cursor-pointer bg-red-500" onClick={removeFile(file)}>
 				<svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
 				</svg>

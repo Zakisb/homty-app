@@ -30,7 +30,7 @@ import {
 
 } from '@heroicons/react/20/solid';
 import Button from '../../ui/Button';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 const solutions = [{
 	name: 'Analytics',
@@ -76,7 +76,7 @@ const links = [{ href: '/dashboard', label: 'My applications', icon: BriefcaseIc
 	href: '/dashboard',
 	label: 'List my property',
 	icon: HomeIcon
-}, { href: '/dashboard', label: 'Logout', icon: ArrowRightOnRectangleIcon }];
+}, { href: '/dashboard', label: 'Logout', icon: ArrowRightOnRectangleIcon, onClick: () => signOut({ callbackUrl: '/'})}];
 
 function classNames (...classes) {
 	return classes.filter(Boolean).join(' ');
@@ -197,6 +197,7 @@ export default function NavBar () {
 														<Menu.Item>
 															{({ active }) => (<button
 																	className={`${active ? 'bg-violet-500 text-white' : 'text-gray-900'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+																	onClick={link.onClick ? link.onClick : false}
 																>
 																	<link.icon
 																		className="mr-2 h-5 w-5"

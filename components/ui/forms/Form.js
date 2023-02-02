@@ -1,7 +1,7 @@
 import  {useState} from "react";
 import {Formik} from "formik";
 
-function Form({initialValues, values, onSubmit, validationSchema, children}) {
+function Form({initialValues, values, onSubmit, validationSchema, children, ...otherProps}) {
     const [formFields, setFormFields] = useState({values});
 
     return (
@@ -10,6 +10,7 @@ function Form({initialValues, values, onSubmit, validationSchema, children}) {
             initialValues={initialValues}
             onSubmit={onSubmit}
             validationSchema={validationSchema}
+            {...otherProps}
         >
             {
                 ({}) => children
